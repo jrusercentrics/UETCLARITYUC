@@ -29,22 +29,38 @@
   <!-- End GTM -->
 
   <style>
-    body { background:#0b1020; color:#fff; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    .card { border:0; }
-    .log {
-      background:#050814;
-      border:1px solid rgba(255,255,255,.15);
-      border-radius:12px;
-      padding:12px;
-      max-height:260px;
-      overflow:auto;
-      white-space:pre-wrap;
-      font-size:13px;
+    body {
+      background: #f4f6f9;
+      color: #212529;
     }
-    .badge-unknown { background:#6c757d; }
-    .badge-true { background:#198754; }
-    .badge-false { background:#dc3545; }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .card {
+      border: 1px solid #dee2e6;
+      border-radius: 12px;
+    }
+    .log {
+      background: #ffffff;
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      padding: 12px;
+      max-height: 260px;
+      overflow: auto;
+      white-space: pre-wrap;
+      font-size: 13px;
+      color: #212529;
+    }
+    .badge-unknown {
+      background: #adb5bd;
+      color: #212529;
+    }
+    .badge-true {
+      background: #198754;
+    }
+    .badge-false {
+      background: #dc3545;
+    }
   </style>
 </head>
 
@@ -63,7 +79,7 @@
       <span class="mono">Microsoft UET</span> and
       <span class="mono">Microsoft Clarity</span>.
       <br>
-      This page installs <strong>GTM only</strong>. All other tools must be deployed via GTM.
+      This page installs <strong>Google Tag Manager only</strong>.
     </p>
   </header>
 
@@ -71,7 +87,7 @@
 
     <!-- Usercentrics -->
     <div class="col-md-4">
-      <div class="card bg-dark rounded-4 shadow-sm">
+      <div class="card h-100 shadow-sm">
         <div class="card-body">
           <h5 class="fw-semibold">1) Usercentrics</h5>
 
@@ -81,7 +97,7 @@
           <hr>
 
           <p class="small text-muted mb-0">
-            Source: <span class="mono">dataLayer consent_status</span><br>
+            Source: <span class="mono">dataLayer → consent_status</span><br>
             Mapping: <strong>Marketing</strong>
           </p>
         </div>
@@ -90,7 +106,7 @@
 
     <!-- UET -->
     <div class="col-md-4">
-      <div class="card bg-dark rounded-4 shadow-sm">
+      <div class="card h-100 shadow-sm">
         <div class="card-body">
           <h5 class="fw-semibold">2) Microsoft UET</h5>
 
@@ -111,7 +127,7 @@
 
     <!-- Clarity -->
     <div class="col-md-4">
-      <div class="card bg-dark rounded-4 shadow-sm">
+      <div class="card h-100 shadow-sm">
         <div class="card-body">
           <h5 class="fw-semibold">3) Microsoft Clarity</h5>
 
@@ -121,8 +137,8 @@
           <hr>
 
           <p class="small text-muted mb-0">
-            Source: <span class="mono">window.clarity</span><br>
-            Mode: <strong>Clarity Consent Mode (Marketing)</strong>
+            Mode: <strong>Clarity Consent Mode</strong><br>
+            Mapping: <strong>Marketing</strong>
           </p>
         </div>
       </div>
@@ -130,7 +146,7 @@
 
     <!-- Log -->
     <div class="col-12">
-      <div class="card bg-dark rounded-4 shadow-sm">
+      <div class="card shadow-sm">
         <div class="card-body">
           <h5 class="fw-semibold mb-3">4) Runtime Log</h5>
           <div id="log" class="log mono"></div>
@@ -153,8 +169,7 @@
 
   function log(msg, obj) {
     const el = document.getElementById("log");
-    const line = `[${new Date().toISOString()}] ${msg}\n`;
-    el.textContent += line;
+    el.textContent += `[${new Date().toISOString()}] ${msg}\n`;
     if (obj) el.textContent += JSON.stringify(obj, null, 2) + "\n";
     el.scrollTop = el.scrollHeight;
     console.log(msg, obj || "");
@@ -174,7 +189,7 @@
     }
   }
 
-  // Hook dataLayer to capture Usercentrics consent
+  // Hook dataLayer (Usercentrics)
   window.dataLayer = window.dataLayer || [];
   const originalPush = window.dataLayer.push.bind(window.dataLayer);
 
@@ -184,7 +199,7 @@
         if (item.ucCategory && typeof item.ucCategory.marketing === "boolean") {
           state.marketing = item.ucCategory.marketing;
           badge(document.getElementById("ucMarketing"), state.marketing);
-          log("Usercentrics consent_status detected (marketing)", item.ucCategory);
+          log("Usercentrics consent_status (marketing)", item.ucCategory);
         }
       }
     }
@@ -192,13 +207,10 @@
   };
 
   function poll() {
-    // UET
     if (window.uetq && window.uetq.uetConfig) {
       state.uetLoaded = true;
       state.uetAdStorage = !!window.uetq.uetConfig.enableAdStorage;
     }
-
-    // Clarity
     state.clarityLoaded = (typeof window.clarity === "function");
 
     badge(document.getElementById("uetLoaded"), state.uetLoaded);
@@ -206,7 +218,7 @@
     badge(document.getElementById("clarityLoaded"), state.clarityLoaded);
   }
 
-  log("Validation initialized. Waiting for Usercentrics, UET and Clarity...");
+  log("Validation initialized. Waiting for Usercentrics, UET and Clarity…");
   setInterval(poll, 1000);
 
 })();
