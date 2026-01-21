@@ -2,65 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Consent Validation — Usercentrics + GTM + UET + Clarity</title>
+  <title>Consent Validation — UC (via GTM) + UET + Clarity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- dataLayer early -->
   <script>
+    // dataLayer early (GTM/UC will use it)
     window.dataLayer = window.dataLayer || [];
   </script>
 
-  <!-- Google Tag Manager -->
+  <!-- GTM -->
   <script>
     (function(w,d,s,l,i){
       w[l]=w[l]||[];
       w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
-      var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),
-          dl=l!='dataLayer'?'&l='+l:'';
-      j.async=true;
-      j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+      var f=d.getElementsByTagName(s)[0], j=d.createElement(s), dl=l!='dataLayer'?'&l='+l:'';
+      j.async=true; j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
       f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-5TXPGTVF');
   </script>
   <!-- End GTM -->
 
   <style>
-    body {
-      background: #f4f6f9;
-      color: #212529;
-    }
-    .mono {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-    .card {
-      border: 1px solid #dee2e6;
-      border-radius: 12px;
-    }
+    body { background:#f4f6f9; color:#212529; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .card { border: 1px solid #dee2e6; border-radius: 12px; }
     .log {
-      background: #ffffff;
-      border: 1px solid #ced4da;
-      border-radius: 8px;
-      padding: 12px;
-      max-height: 260px;
-      overflow: auto;
-      white-space: pre-wrap;
-      font-size: 13px;
-      color: #212529;
+      background:#fff;
+      border:1px solid #ced4da;
+      border-radius:10px;
+      padding:12px;
+      max-height:360px;
+      overflow:auto;
+      white-space:pre-wrap;
+      font-size:12.5px;
+      color:#212529;
     }
-    .badge-unknown {
-      background: #adb5bd;
-      color: #212529;
-    }
-    .badge-true {
-      background: #198754;
-    }
-    .badge-false {
-      background: #dc3545;
-    }
+    .badge-unknown { background:#adb5bd; color:#212529; }
+    .badge-true { background:#198754; }
+    .badge-false { background:#dc3545; }
+    .badge-warn { background:#ffc107; color:#212529; }
+    .smallhint { color:#6c757d; }
+    .btn-micro { padding:.25rem .5rem; font-size:.8rem; }
+    .table-sm td, .table-sm th { padding:.35rem .5rem; }
   </style>
 </head>
 
@@ -71,155 +56,363 @@
 </noscript>
 
 <div class="container py-4">
-
-  <header class="mb-4">
-    <h1 class="fw-bold">Consent Validation Site</h1>
-    <p class="text-muted">
-      Runtime validation for <span class="mono">Usercentrics</span>,
-      <span class="mono">Microsoft UET</span> and
-      <span class="mono">Microsoft Clarity</span>.
-      <br>
-      This page installs <strong>Google Tag Manager only</strong>.
-    </p>
+  <header class="mb-3">
+    <h1 class="fw-bold mb-1">Consent Validation Dashboard</h1>
+    <div class="text-muted">
+      This page installs <strong>GTM only</strong>. Usercentrics, UET and Clarity must be deployed via GTM.
+    </div>
   </header>
 
   <div class="row g-3">
-
-    <!-- Usercentrics -->
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
+    <div class="col-lg-4">
+      <div class="card shadow-sm h-100">
         <div class="card-body">
-          <h5 class="fw-semibold">1) Usercentrics</h5>
+          <h5 class="fw-semibold">High-level status</h5>
 
-          <p class="mb-1">Marketing consent</p>
-          <span id="ucMarketing" class="badge badge-unknown mono">unknown</span>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>Usercentrics marketing consent</div>
+            <span id="ucMarketing" class="badge badge-unknown mono">unknown</span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div>UET loaded</div>
+            <span id="uetLoaded" class="badge badge-unknown mono">unknown</span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div>UET enableAdStorage</div>
+            <span id="uetAdStorage" class="badge badge-unknown mono">unknown</span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div>Clarity loaded</div>
+            <span id="clarityLoaded" class="badge badge-unknown mono">unknown</span>
+          </div>
 
           <hr>
 
-          <p class="small text-muted mb-0">
-            Source: <span class="mono">dataLayer → consent_status</span><br>
-            Mapping: <strong>Marketing</strong>
-          </p>
+          <div class="smallhint">
+            <div><strong>Before banner action</strong>: marketing is usually false/unknown; UET should be denied.</div>
+            <div><strong>After Accept Marketing</strong>: marketing=true; UET enableAdStorage should become true.</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- UET -->
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
+    <div class="col-lg-8">
+      <div class="card shadow-sm h-100">
         <div class="card-body">
-          <h5 class="fw-semibold">2) Microsoft UET</h5>
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="fw-semibold mb-0">Key evidence (before vs after)</h5>
+            <div class="d-flex gap-2">
+              <button id="btnSnapshot" class="btn btn-outline-primary btn-micro">Snapshot now</button>
+              <button id="btnClear" class="btn btn-outline-secondary btn-micro">Clear log</button>
+            </div>
+          </div>
 
-          <p class="mb-1">UET loaded</p>
-          <span id="uetLoaded" class="badge badge-unknown mono">unknown</span>
+          <div class="table-responsive mt-3">
+            <table class="table table-sm align-middle">
+              <tbody>
+                <tr>
+                  <th class="text-muted">Last consent event name</th>
+                  <td class="mono" id="lastConsentEvent">—</td>
+                </tr>
+                <tr>
+                  <th class="text-muted">Last consent payload (ucCategory)</th>
+                  <td class="mono" id="lastUcCategory">—</td>
+                </tr>
+                <tr>
+                  <th class="text-muted">Last consent payload (service fields)</th>
+                  <td class="mono" id="lastServiceFields">—</td>
+                </tr>
+                <tr>
+                  <th class="text-muted">Cookie diff (since page load)</th>
+                  <td class="mono" id="cookieDiff">—</td>
+                </tr>
+                <tr>
+                  <th class="text-muted">UET object timing</th>
+                  <td class="mono" id="uetTiming">—</td>
+                </tr>
+                <tr>
+                  <th class="text-muted">Clarity function timing</th>
+                  <td class="mono" id="clarityTiming">—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <p class="mt-3 mb-1">enableAdStorage</p>
-          <span id="uetAdStorage" class="badge badge-unknown mono">unknown</span>
-
-          <hr>
-
-          <p class="small text-muted mb-0">
-            Source: <span class="mono">window.uetq.uetConfig</span>
-          </p>
+          <div class="smallhint">
+            The most important proof points are: (1) <span class="mono">consent_status</span> payload, (2) UET <span class="mono">enableAdStorage</span> change,
+            and (3) cookie delta after accepting/rejecting.
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Clarity -->
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body">
-          <h5 class="fw-semibold">3) Microsoft Clarity</h5>
-
-          <p class="mb-1">Clarity loaded</p>
-          <span id="clarityLoaded" class="badge badge-unknown mono">unknown</span>
-
-          <hr>
-
-          <p class="small text-muted mb-0">
-            Mode: <strong>Clarity Consent Mode</strong><br>
-            Mapping: <strong>Marketing</strong>
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Log -->
     <div class="col-12">
       <div class="card shadow-sm">
         <div class="card-body">
-          <h5 class="fw-semibold mb-3">4) Runtime Log</h5>
-          <div id="log" class="log mono"></div>
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="fw-semibold mb-0">Timeline / Full Log</h5>
+            <div class="small text-muted">Captures dataLayer pushes, state changes and cookie diffs.</div>
+          </div>
+          <div id="log" class="log mono mt-3"></div>
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
 <script>
 (function(){
-
+  // -------------------------
+  // Utilities
+  // -------------------------
+  const t0 = performance.now();
   const state = {
     marketing: "unknown",
     uetLoaded: false,
-    uetAdStorage: "unknown",
-    clarityLoaded: false
+    uetConfigSeenAtMs: null,
+    uetEnableAdStorage: "unknown",
+    clarityLoaded: false,
+    claritySeenAtMs: null,
+    lastConsentEvent: null,
+    lastUcCategory: null,
+    lastServiceFields: null,
+    cookieAtLoad: null
   };
 
+  const el = (id) => document.getElementById(id);
+  const logEl = el("log");
+
+  function msSinceStart() {
+    return Math.round(performance.now() - t0);
+  }
+
+  function nowStamp() {
+    return new Date().toISOString();
+  }
+
   function log(msg, obj) {
-    const el = document.getElementById("log");
-    el.textContent += `[${new Date().toISOString()}] ${msg}\n`;
-    if (obj) el.textContent += JSON.stringify(obj, null, 2) + "\n";
-    el.scrollTop = el.scrollHeight;
-    console.log(msg, obj || "");
+    const prefix = `[${nowStamp()} | +${msSinceStart()}ms] `;
+    logEl.textContent += prefix + msg + "\n";
+    if (obj !== undefined) logEl.textContent += safeJson(obj) + "\n";
+    logEl.scrollTop = logEl.scrollHeight;
+    console.log(prefix + msg, obj || "");
   }
 
-  function badge(el, value) {
-    el.classList.remove("badge-unknown","badge-true","badge-false");
-    if (value === true) {
-      el.textContent = "true";
-      el.classList.add("badge-true");
-    } else if (value === false) {
-      el.textContent = "false";
-      el.classList.add("badge-false");
-    } else {
-      el.textContent = "unknown";
-      el.classList.add("badge-unknown");
+  function safeJson(x) {
+    try { return JSON.stringify(x, null, 2); } catch { return String(x); }
+  }
+
+  function setBadge(id, value) {
+    const b = el(id);
+    b.classList.remove("badge-unknown","badge-true","badge-false","badge-warn");
+    if (value === true) { b.textContent = "true"; b.classList.add("badge-true"); }
+    else if (value === false) { b.textContent = "false"; b.classList.add("badge-false"); }
+    else if (value === "partial") { b.textContent = "partial"; b.classList.add("badge-warn"); }
+    else { b.textContent = "unknown"; b.classList.add("badge-unknown"); }
+  }
+
+  // -------------------------
+  // Cookie helpers
+  // -------------------------
+  function listCookies() {
+    // Note: HttpOnly cookies won't show here (expected).
+    const raw = document.cookie || "";
+    const parts = raw.split(";").map(s => s.trim()).filter(Boolean);
+    const map = {};
+    for (const p of parts) {
+      const idx = p.indexOf("=");
+      const k = idx >= 0 ? p.slice(0, idx) : p;
+      const v = idx >= 0 ? p.slice(idx+1) : "";
+      map[k] = v;
     }
+    return map;
   }
 
-  // Hook dataLayer (Usercentrics)
+  function diffCookies(before, after) {
+    const out = { added: [], removed: [], changed: [] };
+    const bKeys = new Set(Object.keys(before));
+    const aKeys = new Set(Object.keys(after));
+    for (const k of aKeys) if (!bKeys.has(k)) out.added.push(k);
+    for (const k of bKeys) if (!aKeys.has(k)) out.removed.push(k);
+    for (const k of aKeys) {
+      if (bKeys.has(k) && before[k] !== after[k]) out.changed.push(k);
+    }
+    return out;
+  }
+
+  function updateCookieDiffUI() {
+    const now = listCookies();
+    const d = diffCookies(state.cookieAtLoad || {}, now);
+    el("cookieDiff").textContent = `added=${d.added.length}, removed=${d.removed.length}, changed=${d.changed.length}`;
+  }
+
+  // -------------------------
+  // dataLayer hook (UC)
+  // -------------------------
   window.dataLayer = window.dataLayer || [];
   const originalPush = window.dataLayer.push.bind(window.dataLayer);
 
+  function summarizeServiceFields(item) {
+    // Heuristic: take boolean fields except "event" and "ucCategory"
+    const out = {};
+    for (const [k,v] of Object.entries(item || {})) {
+      if (k === "event" || k === "ucCategory") continue;
+      if (typeof v === "boolean") out[k] = v;
+    }
+    return out;
+  }
+
   window.dataLayer.push = function(){
     for (const item of arguments) {
-      if (item && item.event && item.event.includes("consent")) {
-        if (item.ucCategory && typeof item.ucCategory.marketing === "boolean") {
-          state.marketing = item.ucCategory.marketing;
-          badge(document.getElementById("ucMarketing"), state.marketing);
-          log("Usercentrics consent_status (marketing)", item.ucCategory);
+      // Always log pushes with an event name (useful for order/timing)
+      if (item && typeof item === "object" && item.event) {
+        log(`dataLayer.push event="${item.event}"`, item);
+
+        // Capture consent-related pushes
+        const e = String(item.event).toLowerCase();
+        if (e.includes("consent") || e.includes("uc")) {
+          state.lastConsentEvent = item.event;
+          el("lastConsentEvent").textContent = String(item.event);
+
+          if (item.ucCategory) {
+            state.lastUcCategory = item.ucCategory;
+            el("lastUcCategory").textContent = safeJson(item.ucCategory);
+
+            if (typeof item.ucCategory.marketing === "boolean") {
+              state.marketing = item.ucCategory.marketing;
+              setBadge("ucMarketing", state.marketing);
+              log(`UC marketing updated -> ${state.marketing}`);
+            }
+          }
+
+          const svc = summarizeServiceFields(item);
+          state.lastServiceFields = svc;
+          el("lastServiceFields").textContent = Object.keys(svc).length ? safeJson(svc) : "—";
+
+          // Cookie diff after a consent push is strong evidence
+          setTimeout(() => {
+            updateCookieDiffUI();
+            log("Cookie diff updated after consent event", {
+              sinceLoad: diffCookies(state.cookieAtLoad || {}, listCookies())
+            });
+          }, 250);
         }
       }
     }
     return originalPush.apply(null, arguments);
   };
 
-  function poll() {
-    if (window.uetq && window.uetq.uetConfig) {
-      state.uetLoaded = true;
-      state.uetAdStorage = !!window.uetq.uetConfig.enableAdStorage;
-    }
-    state.clarityLoaded = (typeof window.clarity === "function");
+  // -------------------------
+  // UET + Clarity watchers
+  // -------------------------
+  function pollTech() {
+    // UET presence
+    const hasUetq = !!window.uetq;
+    const hasConfig = !!(window.uetq && window.uetq.uetConfig);
 
-    badge(document.getElementById("uetLoaded"), state.uetLoaded);
-    badge(document.getElementById("uetAdStorage"), state.uetAdStorage);
-    badge(document.getElementById("clarityLoaded"), state.clarityLoaded);
+    if (hasUetq && !state.uetLoaded) {
+      // uetq might start as array, still counts as present
+      state.uetLoaded = true;
+      setBadge("uetLoaded", true);
+      log("UET detected: window.uetq is present");
+    }
+
+    if (hasConfig && state.uetConfigSeenAtMs === null) {
+      state.uetConfigSeenAtMs = msSinceStart();
+      el("uetTiming").textContent = `uetConfig first seen at +${state.uetConfigSeenAtMs}ms`;
+      log("UET detected: uetConfig is present");
+    }
+
+    if (hasConfig) {
+      const v = !!window.uetq.uetConfig.enableAdStorage;
+      if (state.uetEnableAdStorage !== v) {
+        state.uetEnableAdStorage = v;
+        setBadge("uetAdStorage", v);
+        log(`UET enableAdStorage changed -> ${v}`, {
+          enableAdStorage: v,
+          marketingConsent: state.marketing
+        });
+        updateCookieDiffUI();
+      } else {
+        setBadge("uetAdStorage", v);
+      }
+    } else {
+      setBadge("uetLoaded", hasUetq ? "partial" : false);
+      setBadge("uetAdStorage", "unknown");
+    }
+
+    // Clarity presence
+    const hasClarity = (typeof window.clarity === "function");
+    if (hasClarity && !state.clarityLoaded) {
+      state.clarityLoaded = true;
+      setBadge("clarityLoaded", true);
+      state.claritySeenAtMs = msSinceStart();
+      el("clarityTiming").textContent = `clarity() first seen at +${state.claritySeenAtMs}ms`;
+      log("Clarity detected: window.clarity is present");
+      updateCookieDiffUI();
+    }
+    if (!hasClarity) setBadge("clarityLoaded", false);
   }
 
-  log("Validation initialized. Waiting for Usercentrics, UET and Clarity…");
-  setInterval(poll, 1000);
+  // -------------------------
+  // Snapshots
+  // -------------------------
+  function snapshot(reason) {
+    const cookies = listCookies();
+    const uet = {
+      uetqPresent: !!window.uetq,
+      uetConfigPresent: !!(window.uetq && window.uetq.uetConfig),
+      enableAdStorage: (window.uetq && window.uetq.uetConfig) ? !!window.uetq.uetConfig.enableAdStorage : "unknown"
+    };
+    const clarity = {
+      clarityPresent: (typeof window.clarity === "function")
+    };
+
+    log(`SNAPSHOT (${reason})`, {
+      marketingConsent: state.marketing,
+      lastConsentEvent: state.lastConsentEvent,
+      lastUcCategory: state.lastUcCategory,
+      lastServiceFields: state.lastServiceFields,
+      uet,
+      clarity,
+      cookieNames: Object.keys(cookies).sort(),
+      cookieDiffSinceLoad: diffCookies(state.cookieAtLoad || {}, cookies)
+    });
+
+    el("lastConsentEvent").textContent = state.lastConsentEvent ? String(state.lastConsentEvent) : "—";
+    el("lastUcCategory").textContent = state.lastUcCategory ? safeJson(state.lastUcCategory) : "—";
+    el("lastServiceFields").textContent = state.lastServiceFields && Object.keys(state.lastServiceFields).length ? safeJson(state.lastServiceFields) : "—";
+    updateCookieDiffUI();
+  }
+
+  // -------------------------
+  // Buttons
+  // -------------------------
+  el("btnSnapshot").addEventListener("click", () => snapshot("Manual"));
+  el("btnClear").addEventListener("click", () => { logEl.textContent = ""; log("Log cleared"); });
+
+  // -------------------------
+  // Boot
+  // -------------------------
+  state.cookieAtLoad = listCookies();
+  setBadge("ucMarketing", "unknown");
+  setBadge("uetLoaded", false);
+  setBadge("uetAdStorage", "unknown");
+  setBadge("clarityLoaded", false);
+
+  log("Page initialized. Capturing dataLayer pushes and monitoring UET/Clarity…");
+  snapshot("On load");
+
+  // Timed snapshots help you prove ordering
+  setTimeout(() => snapshot("T+3s"), 3000);
+  setTimeout(() => snapshot("T+10s"), 10000);
+  setTimeout(() => snapshot("T+30s"), 30000);
+
+  // Poll tech state
+  setInterval(pollTech, 500);
 
 })();
 </script>
