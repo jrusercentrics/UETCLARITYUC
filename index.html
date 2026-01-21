@@ -5,724 +5,744 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Forensic Consent Debug Dashboard — UC (via GTM) + UET + Clarity</title>
 
-  <!-- Bootstrap (CDN) -->
+  <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
     :root{
-      --bg:#070b14;
-      --bg2:#0b1220;
-      --panel:#0f1930;
-      --panel2:#0c152a;
-      --text:#eef2ff;
-      --muted:#b7c1e6;
-      --border:#26355f;
-
-      --good-bg: rgba(34,197,94,.18);
-      --good-fg: #86efac;
-      --good-bd: rgba(34,197,94,.35);
-
-      --bad-bg: rgba(239,68,68,.18);
-      --bad-fg: #fecaca;
-      --bad-bd: rgba(239,68,68,.35);
-
-      --warn-bg: rgba(245,158,11,.18);
-      --warn-fg: #fde68a;
-      --warn-bd: rgba(245,158,11,.35);
-
-      --info-bg: rgba(96,165,250,.18);
-      --info-fg: #bfdbfe;
-      --info-bd: rgba(96,165,250,.35);
+      --bg:#f7f8fc;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --ok:#16a34a;
+      --bad:#dc2626;
+      --warn:#f59e0b;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
-
-    body{
-      background: radial-gradient(1200px 600px at 20% 0%, #121c39 0%, var(--bg2) 55%, var(--bg) 100%);
-      color: var(--text);
+    body{ background:var(--bg); color:var(--text); }
+    .subtle{ color:var(--muted); }
+    .card{ border:1px solid var(--border); border-radius:14px; box-shadow: 0 2px 10px rgba(17,24,39,.05); }
+    .mono{ font-family: var(--mono); }
+    .badge-pill{
+      border-radius:999px; padding:.35rem .6rem; font-weight:700; font-size:.85rem;
+      border:1px solid rgba(0,0,0,.06);
     }
-
-    .muted { color: var(--muted); }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-
-    .panel{
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: 0 10px 24px rgba(0,0,0,.35);
+    .b-ok{ background: rgba(22,163,74,.12); color: var(--ok); }
+    .b-bad{ background: rgba(220,38,38,.12); color: var(--bad); }
+    .b-warn{ background: rgba(245,158,11,.14); color: #92400e; }
+    pre.log{
+      background:#0b1220; color:#e5e7eb; border:1px solid rgba(255,255,255,.08);
+      border-radius:12px; padding:12px; max-height:420px; overflow:auto;
+      font-family: var(--mono); font-size: 12.5px; line-height: 1.35;
     }
-
-    .panel-inner{
-      background: rgba(0,0,0,.25);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 12px;
+    pre.dump{
+      background:#0b1220; color:#e5e7eb; border:1px solid rgba(255,255,255,.08);
+      border-radius:12px; padding:12px; overflow:auto;
+      font-family: var(--mono); font-size: 12.5px; line-height: 1.35;
+      max-height: 360px;
     }
-
-    .badge-soft{
-      border:1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.25);
-      color: var(--text);
-      font-weight: 700;
-      padding: .32rem .6rem;
-      border-radius: 999px;
-      font-size:.8rem;
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-width:72px;
-      padding:.26rem .60rem;
-      border-radius:999px;
-      font-weight:800;
-      font-size:.82rem;
-      border:1px solid rgba(255,255,255,.16);
-    }
-    .pill.good{ background: var(--good-bg); color: var(--good-fg); border-color: var(--good-bd); }
-    .pill.bad{  background: var(--bad-bg);  color: var(--bad-fg);  border-color: var(--bad-bd); }
-    .pill.warn{ background: var(--warn-bg); color: var(--warn-fg); border-color: var(--warn-bd); }
-    .pill.info{ background: var(--info-bg); color: var(--info-fg); border-color: var(--info-bd); }
-
-    .smallcaps { letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; color: var(--muted); }
-
-    pre.logbox{
-      max-height: 420px;
-      overflow:auto;
-      background: #050812;
-      border:1px solid rgba(255,255,255,.10);
-      border-radius: 12px;
-      padding: 12px;
-      color: #e6ecff;
-      font-size: 12px;
-      line-height: 1.35;
-      margin:0;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    /* Force Bootstrap table to be dark/transparent (fixes your "washed out" look) */
-    .table{
-      --bs-table-bg: transparent;
-      --bs-table-color: var(--text);
-      --bs-table-border-color: rgba(255,255,255,.10);
-    }
-    .table td, .table th { vertical-align: middle; }
-
-    .btn-outline-light{
-      border-color: rgba(255,255,255,.25);
-      color: var(--text);
-    }
-    .btn-outline-light:hover{
-      background: rgba(255,255,255,.08);
-      border-color: rgba(255,255,255,.35);
-    }
-
-    .toast-container{ position: fixed; top: 16px; right: 16px; z-index: 9999; width: min(420px, 92vw); }
+    .kpi{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:.35rem 0; border-bottom:1px dashed var(--border); }
+    .kpi:last-child{ border-bottom:none; }
+    .section-title{ font-weight:800; }
+    .soft-note{ background:#fff7ed; border:1px solid #fed7aa; color:#7c2d12; border-radius:12px; padding:10px 12px; }
+    .success-note{ background:#ecfdf5; border:1px solid #bbf7d0; color:#065f46; border-radius:12px; padding:10px 12px; }
+    .btn-sm{ border-radius:10px; }
   </style>
 
-  <!-- Google Tag Manager (your container) -->
+  <!-- Google Tag Manager -->
   <script>
-    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
+      var f=d.getElementsByTagName(s)[0], j=d.createElement(s), dl=l!='dataLayer'?'&l='+l:'';
+      j.async=true; j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+      f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-5TXPGTVF');
   </script>
 </head>
 
 <body>
-  <!-- Google Tag Manager (noscript) -->
+  <!-- GTM noscript -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5TXPGTVF"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-
-  <div class="toast-container" id="toastContainer"></div>
-
-  <!-- Copy JSON Modal (fallback when clipboard is blocked) -->
-  <div class="modal fade" id="copyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-      <div class="modal-content" style="background: var(--panel); border:1px solid var(--border);">
-        <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,.10);">
-          <h5 class="modal-title">Copy JSON dump</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="muted mb-2">
-            Clipboard was blocked. Use the button below or manually select + copy.
-          </div>
-          <button class="btn btn-outline-light btn-sm mb-2" id="btnModalCopy">Copy</button>
-          <textarea id="copyArea" class="form-control mono" style="height: 52vh; background:#050812; color:#e6ecff; border:1px solid rgba(255,255,255,.12);" spellcheck="false"></textarea>
-        </div>
-      </div>
-    </div>
-  </div>
+                    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <div class="container py-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-3">
       <div>
-        <h1 class="fw-bold mb-1">Forensic Consent Debug Dashboard</h1>
-        <div class="muted">
-          Installs <b>GTM only</b>. Usercentrics, UET and Clarity must be deployed via GTM.
-          <span class="badge-soft ms-2">All code/comments in English</span>
+        <h1 class="mb-1">Forensic Consent Debug Dashboard</h1>
+        <div class="subtle">
+          Installs <b>GTM only</b>. Usercentrics, UET and Clarity must be deployed via GTM. All code/comments in English.
         </div>
       </div>
-
-      <div class="d-flex flex-wrap gap-2 align-items-center">
-        <span class="badge-soft">GTM: <span class="mono" id="gtmId">GTM-5TXPGTVF</span></span>
-        <button class="btn btn-outline-light btn-sm" id="btnSnapshot">Snapshot</button>
-        <button class="btn btn-outline-light btn-sm" id="btnDump">Dump everything</button>
-        <button class="btn btn-outline-light btn-sm" id="btnCopyJson">Copy JSON</button>
-        <button class="btn btn-outline-light btn-sm" id="btnClear">Clear log</button>
+      <div class="d-flex gap-2 align-items-center">
+        <span class="badge text-bg-light border mono">GTM: GTM-5TXPGTVF</span>
+        <button class="btn btn-outline-primary btn-sm" id="btnSnapshot">Snapshot</button>
+        <button class="btn btn-outline-secondary btn-sm" id="btnDump">Dump everything</button>
+        <button class="btn btn-outline-danger btn-sm" id="btnClear">Clear log</button>
       </div>
     </div>
 
-    <hr class="border-opacity-25">
-
     <div class="row g-3">
-      <!-- High-level status -->
       <div class="col-lg-4">
-        <div class="panel p-3 h-100">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="fw-bold fs-5">High-level status</div>
-            <div class="smallcaps">live</div>
+        <div class="card p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="section-title">High-level status</div>
+            <span class="badge text-bg-light border">LIVE</span>
           </div>
 
-          <div class="table-responsive">
-            <table class="table table-sm mb-2">
-              <tbody>
-                <tr>
-                  <td class="muted">UC marketing consent</td>
-                  <td class="text-end"><span class="pill" id="pMarketing">unknown</span></td>
-                </tr>
-                <tr>
-                  <td class="muted">UET present</td>
-                  <td class="text-end"><span class="pill" id="pUetPresent">unknown</span></td>
-                </tr>
-                <tr>
-                  <td class="muted">UET Consent Mode (enableAdStorage)</td>
-                  <td class="text-end"><span class="pill" id="pUetAd">unknown</span></td>
-                </tr>
-
-                <tr><td colspan="2" class="muted small">Clarity evidence (3 levels)</td></tr>
-                <tr>
-                  <td class="muted">Clarity stub present</td>
-                  <td class="text-end"><span class="pill" id="pClarityStub">unknown</span></td>
-                </tr>
-                <tr>
-                  <td class="muted">Clarity script loaded (network/perf)</td>
-                  <td class="text-end"><span class="pill" id="pClarityLoaded">unknown</span></td>
-                </tr>
-                <tr>
-                  <td class="muted">Clarity cookies present (_clck/_clsk)</td>
-                  <td class="text-end"><span class="pill" id="pClarityCookies">unknown</span></td>
-                </tr>
-                <tr>
-                  <td class="muted">Clarity “session evidence”</td>
-                  <td class="text-end"><span class="pill" id="pClaritySession">unknown</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="mt-2 muted">
-            <div class="mb-2">
-              <b>UET CoMo</b> is observable via <span class="mono">window.uetq.uetConfig.enableAdStorage</span> (best in-browser signal).
+          <div class="mt-2">
+            <div class="kpi">
+              <div>UC marketing consent</div>
+              <div id="k_ucMarketing" class="badge-pill b-warn">unknown</div>
             </div>
-            <div>
-              <b>Clarity “session mode”</b> is inferred from:
-              <span class="mono">(_clck/_clsk)</span> + script resource evidence. Stub alone is <i>not</i> proof.
+
+            <div class="kpi">
+              <div>UET present</div>
+              <div id="k_uetPresent" class="badge-pill b-warn">unknown</div>
+            </div>
+
+            <div class="kpi">
+              <div>UET Consent Mode (enableAdStorage)</div>
+              <div id="k_uetAdStorage" class="badge-pill b-warn">unknown</div>
+            </div>
+
+            <hr class="my-2">
+
+            <div class="kpi">
+              <div>Clarity evidence (3 levels)</div>
+              <div class="subtle small">stub / runtime / cookies</div>
+            </div>
+
+            <div class="kpi">
+              <div>Clarity stub present</div>
+              <div id="k_clarityStub" class="badge-pill b-warn">unknown</div>
+            </div>
+
+            <div class="kpi">
+              <div>Clarity runtime downloaded (perf)</div>
+              <div id="k_clarityRes" class="badge-pill b-warn">unknown</div>
+            </div>
+
+            <div class="kpi">
+              <div>Clarity cookies present (_clck/_clsk)</div>
+              <div id="k_clarityCookies" class="badge-pill b-warn">unknown</div>
+            </div>
+
+            <div class="kpi">
+              <div>Clarity “session evidence”</div>
+              <div id="k_claritySession" class="badge-pill b-warn">unknown</div>
+            </div>
+
+            <hr class="my-2">
+
+            <div class="small subtle">
+              <b>UET CoMo</b> is observable via <span class="mono">window.uetq.uetConfig.enableAdStorage</span>.<br>
+              <b>Clarity evidence</b>: stub ≠ proof. Runtime resource + cookies are evidence.
+            </div>
+
+            <div class="mt-3 soft-note small">
+              <b>Interpretation:</b><br>
+              • If Clarity runtime is downloaded <i>before</i> consent, your GTM tag loads Clarity regardless of consent.<br>
+              • If cookies (<span class="mono">_clck/_clsk</span>) appear only after consent, you have strong evidence of “no session stitching before consent”.
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Quick evidence -->
       <div class="col-lg-8">
-        <div class="panel p-3 h-100">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="fw-bold fs-5">Quick evidence</div>
-            <div class="smallcaps">before vs after</div>
-          </div>
+        <div class="card p-3">
+          <div class="section-title">Quick evidence</div>
+          <div class="subtle small mb-2">Based on last <span class="mono">consent_status</span> + cookies + resource evidence.</div>
 
           <div class="row g-3">
-            <div class="col-md-7">
-              <div class="panel-inner p-3">
-                <div class="smallcaps mb-1">Last consent event</div>
-                <div class="mono fs-6" id="lastEventName">—</div>
+            <div class="col-md-6">
+              <div class="card p-3 h-100">
+                <div class="subtle small">Last consent event</div>
+                <div class="mono" id="q_eventName">—</div>
 
-                <div class="smallcaps mt-3 mb-1">ucCategory (raw)</div>
-                <pre class="logbox" style="max-height:140px" id="ucCategoryRaw">—</pre>
+                <div class="mt-2 subtle small">ucCategory (raw)</div>
+                <pre class="dump mb-0" id="q_ucCategory">—</pre>
 
-                <div class="smallcaps mt-3 mb-1">Service booleans (raw)</div>
-                <pre class="logbox" style="max-height:160px" id="serviceRaw">—</pre>
+                <div class="mt-2 subtle small">Service booleans (raw)</div>
+                <pre class="dump mb-0" id="q_services">—</pre>
               </div>
             </div>
 
-            <div class="col-md-5">
-              <div class="panel-inner p-3">
-                <div class="smallcaps mb-1">Cookie diff since page load</div>
-                <div class="mono fs-6" id="cookieDiffSummary">added=0, removed=0, changed=0</div>
+            <div class="col-md-6">
+              <div class="card p-3 h-100">
+                <div class="subtle small">Cookie diff since page load</div>
+                <div class="mono" id="q_cookieDiff">—</div>
 
-                <div class="smallcaps mt-3 mb-1">UET timing</div>
-                <div class="mono" id="uetTiming">—</div>
+                <div class="mt-2 subtle small">UET timing</div>
+                <div class="mono" id="q_uetTiming">—</div>
 
-                <div class="smallcaps mt-3 mb-1">Clarity timing</div>
-                <div class="mono" id="clarityTiming">—</div>
+                <div class="mt-2 subtle small">Clarity timing</div>
+                <div class="mono" id="q_clarityTiming">—</div>
 
-                <div class="smallcaps mt-3 mb-1">Clarity resource evidence</div>
-                <div class="mono" id="clarityResourceLine">—</div>
+                <div class="mt-2 subtle small">Clarity runtime timing (perf)</div>
+                <div class="mono" id="q_clarityResTiming">—</div>
               </div>
             </div>
 
             <div class="col-12">
-              <div class="panel-inner p-3">
-                <div class="smallcaps mb-1">Clarity session evidence</div>
-                <div class="fw-bold" id="clarityEvidenceTitle">—</div>
-                <div class="muted mt-2">Based on cookies + resource evidence (best possible in-browser).</div>
+              <div class="card p-3">
+                <div class="section-title small">Clarity session evidence</div>
+                <div id="q_claritySessionText" class="mono mt-1">—</div>
 
-                <div class="row mt-3 g-2">
+                <div class="row g-3 mt-2">
                   <div class="col-md-6">
-                    <div class="smallcaps mb-1">Clarity cookies (visible to JS)</div>
-                    <div class="mono" id="clarityCookiesList">(none)</div>
+                    <div class="subtle small">Clarity cookies (visible to JS)</div>
+                    <div class="mono" id="q_clarityCookieList">—</div>
                   </div>
                   <div class="col-md-6">
-                    <div class="smallcaps mb-1">UET cookies (visible to JS)</div>
-                    <div class="mono" id="uetCookiesList">(none)</div>
+                    <div class="subtle small">UET cookies (visible to JS)</div>
+                    <div class="mono" id="q_uetCookieList">—</div>
                   </div>
+                </div>
 
-                  <div class="col-12 mt-2">
-                    <div class="smallcaps mb-1">Loaded script evidence</div>
-                    <div class="mono" id="loadedEvidenceLine">gtm=?, uc=?, uetBat=?, clarityTag=?</div>
-                    <div class="muted mt-2">
-                      Tip: <b>Dump everything</b> shows full objects: <span class="mono">window.uetq</span>, <span class="mono">uetConfig</span>, <span class="mono">window.clarity</span>, resource list, and consent payloads.
-                    </div>
-                  </div>
+                <div class="mt-2 subtle small">Loaded script evidence</div>
+                <div class="mono" id="q_loadedEvidence">—</div>
+
+                <div class="mt-3 success-note small">
+                  Tip: <b>Dump everything</b> shows full objects + perf resources + cookies + consent payload.
                 </div>
               </div>
             </div>
-
-          </div><!-- row -->
-        </div>
-      </div>
-
-      <!-- Timeline -->
-      <div class="col-12">
-        <div class="panel p-3">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div class="fw-bold fs-5">Timeline log (dataLayer, state changes, cookie diff)</div>
-            <div class="smallcaps">forensics</div>
           </div>
-          <pre class="logbox mono" id="log"></pre>
         </div>
+
+        <div class="card p-3 mt-3">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="section-title">Timeline log</div>
+            <div class="subtle small">dataLayer pushes, state changes, cookie diffs</div>
+          </div>
+          <pre class="log mt-2 mb-0" id="log"></pre>
+        </div>
+
+        <div class="card p-3 mt-3">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="section-title">Deep dumps (most detailed)</div>
+            <div class="d-flex gap-2 align-items-center">
+              <button class="btn btn-primary btn-sm" id="btnCopyDump">Copy dump JSON</button>
+              <span class="subtle small" id="copyStatus"></span>
+            </div>
+          </div>
+          <div class="subtle small mb-2">Copy includes consent payload + UET + Clarity + resources + cookies + last dataLayer pushes.</div>
+
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="subtle small">Dump preview (same JSON copied)</div>
+              <pre class="dump" id="d_all">—</pre>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 
   <script>
-    (function(){
-      const START = performance.now();
-      const ISO = () => new Date().toISOString();
+    /*****************************************************************
+     * SAFE STRINGIFY (handles circular objects + functions)
+     *****************************************************************/
+    function safeStringify(value, space = 2) {
+      const seen = new WeakSet();
+      return JSON.stringify(value, function(key, val) {
+        if (typeof val === "function") return `[Function ${val.name || "anonymous"}]`;
+        if (typeof val === "object" && val !== null) {
+          if (seen.has(val)) return "[Circular]";
+          seen.add(val);
+        }
+        return val;
+      }, space);
+    }
 
-      const state = {
-        gtmId: "GTM-5TXPGTVF",
-        lastConsentEvent: null,
-        lastUcCategory: null,
-        lastServiceBooleans: null,
-        lastDataLayerPush: null,
-        firstSeen: { uetq: null, uetConfig: null, clarityStub: null, clarityRuntime: null },
-        cookieBaseline: null,
-        cookieDiff: { added: [], removed: [], changed: [] },
-        logLines: []
+    /*****************************************************************
+     * LOGGING
+     *****************************************************************/
+    const t0 = performance.now();
+    const logEl = document.getElementById("log");
+    function ts() {
+      const now = new Date().toISOString();
+      const dt = Math.round(performance.now() - t0);
+      return `[${now} | +${dt}ms]`;
+    }
+    function log(msg, obj) {
+      const line = `${ts()} ${msg}`;
+      console.log(line, obj || "");
+      logEl.textContent += line + (obj ? "\n" + safeStringify(obj, 2) : "") + "\n";
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    /*****************************************************************
+     * HELPERS: cookies, perf resources, badges
+     *****************************************************************/
+    function getCookieMap() {
+      const out = {};
+      document.cookie.split(";").map(s => s.trim()).filter(Boolean).forEach(pair => {
+        const idx = pair.indexOf("=");
+        const k = idx >= 0 ? pair.slice(0, idx) : pair;
+        const v = idx >= 0 ? pair.slice(idx+1) : "";
+        out[k] = v;
+      });
+      return out;
+    }
+
+    function diffCookies(a, b) {
+      const added = [];
+      const removed = [];
+      const changed = [];
+      const aKeys = new Set(Object.keys(a));
+      const bKeys = new Set(Object.keys(b));
+      for (const k of bKeys) if (!aKeys.has(k)) added.push(k);
+      for (const k of aKeys) if (!bKeys.has(k)) removed.push(k);
+      for (const k of bKeys) if (aKeys.has(k) && a[k] !== b[k]) changed.push(k);
+      return { added, removed, changed };
+    }
+
+    function getPerfResources() {
+      try {
+        const entries = performance.getEntriesByType("resource") || [];
+        return entries.map(e => ({
+          name: e.name,
+          initiatorType: e.initiatorType,
+          startTime: Math.round(e.startTime),
+          duration: Math.round(e.duration)
+        }));
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function findClarityRuntime(perfList) {
+      // Clarity runtime is usually https://www.clarity.ms/tag/<id> plus additional requests.
+      // We treat any clarity.ms resource request as "runtime evidence".
+      const hits = perfList.filter(r => (r.name || "").includes("clarity.ms"));
+      if (!hits.length) return null;
+      const first = hits.reduce((min, r) => r.startTime < min.startTime ? r : min, hits[0]);
+      return { count: hits.length, firstStartTime: first.startTime, firstUrl: first.name, hits };
+    }
+
+    function badge(el, state) {
+      el.classList.remove("b-ok","b-bad","b-warn");
+      if (state === true) { el.classList.add("b-ok"); el.textContent = "true"; return; }
+      if (state === false) { el.classList.add("b-bad"); el.textContent = "false"; return; }
+      el.classList.add("b-warn"); el.textContent = "unknown";
+    }
+
+    /*****************************************************************
+     * STATE WE TRACK
+     *****************************************************************/
+    let cookieBase = getCookieMap();
+    let lastConsentPayload = null;     // raw consent_status object
+    let lastUcCategory = null;         // payload.ucCategory
+    let lastServiceFields = null;      // service booleans extracted
+    let lastConsentEventName = null;
+
+    let uetFirstSeenAt = null;
+    let uetConfigFirstSeenAt = null;
+    let clarityStubFirstSeenAt = null;
+    let clarityRuntimeFirstSeenAt = null;
+
+    const dlHistory = [];              // last pushes captured
+
+    function readUetEnableAdStorage() {
+      try {
+        // Typical: window.uetq is array-like, uetConfig attached on it after bat.js loads
+        const uetq = window.uetq || window.uetq;
+        const cfg = (window.uetq && window.uetq.uetConfig) ? window.uetq.uetConfig :
+                    (window.uetq && window.uetq.uetConfig === undefined && window.uetq.uetConfig) ? window.uetq.uetConfig :
+                    (window.uetq && window.uetq.uetConfig) ? window.uetq.uetConfig :
+                    (window.uetq && window.uetq.uetConfig) ? window.uetq.uetConfig :
+                    (window.uetq && window.uetq.uetConfig) ? window.uetq.uetConfig :
+                    (window.uetq && window.uetq.uetConfig) ? window.uetq.uetConfig :
+                    (window.uetq && window.uetq.uetConfig) ? window.uetq.uetConfig :
+                    null;
+
+        // Many installs attach uetConfig to window.uetq (array)
+        const enable = cfg && typeof cfg.enableAdStorage === "boolean" ? cfg.enableAdStorage : undefined;
+        return { present: !!window.uetq, hasUetConfig: !!cfg, enableAdStorage: (enable === undefined ? "unknown" : enable) };
+      } catch(e) {
+        return { present: !!window.uetq, hasUetConfig: false, enableAdStorage: "unknown", error: String(e) };
+      }
+    }
+
+    function readClarityStub() {
+      return (typeof window.clarity === "function");
+    }
+
+    function computeClarityEvidence(cookieMap, perfList) {
+      const hasStub = readClarityStub();
+
+      const clarityCookies = [];
+      if (cookieMap["_clck"]) clarityCookies.push("_clck");
+      if (cookieMap["_clsk"]) clarityCookies.push("_clsk");
+
+      const uetCookies = [];
+      if (cookieMap["_uetsid"]) uetCookies.push("_uetsid");
+      if (cookieMap["_uetvid"]) uetCookies.push("_uetvid");
+
+      const clarityRuntime = findClarityRuntime(perfList);
+      const hasRuntime = !!clarityRuntime;
+
+      // "Session evidence" heuristic:
+      // - If _clck/_clsk exist: persistent session linking is enabled (non-anonymous stitching).
+      // - If no cookies but runtime exists: likely "no stitching" (or limited mode). We label it as "runtime-only".
+      // - If stub only: not proof.
+      let sessionText = "—";
+      let sessionBool = "unknown";
+      if (clarityCookies.length) {
+        sessionText = "PERSISTENT LINKING ENABLED — _clck/_clsk present. Sessions can be linked across pages/visits (non-anonymous).";
+        sessionBool = true;
+      } else if (hasRuntime) {
+        sessionText = "RUNTIME LOADED but NO _clck/_clsk — likely no cookie-based session stitching yet (best in-browser evidence).";
+        sessionBool = false;
+      } else if (hasStub) {
+        sessionText = "ONLY STUB PRESENT — not proof of runtime execution. No cookies + no resource evidence.";
+        sessionBool = false;
+      } else {
+        sessionText = "Clarity not detected.";
+        sessionBool = false;
+      }
+
+      return {
+        hasStub,
+        clarityRuntime,
+        hasRuntime,
+        clarityCookies,
+        uetCookies,
+        sessionText,
+        sessionBool
+      };
+    }
+
+    /*****************************************************************
+     * Capture dataLayer pushes (including consent_status)
+     *****************************************************************/
+    window.dataLayer = window.dataLayer || [];
+    const originalPush = window.dataLayer.push.bind(window.dataLayer);
+
+    window.dataLayer.push = function() {
+      // GTM sometimes pushes arguments rather than a single object.
+      const args = Array.from(arguments);
+      let obj = args.length === 1 ? args[0] : { _args: args };
+
+      // Attempt to detect event name
+      const eventName = (obj && obj.event) ? obj.event : "(none)";
+      dlHistory.push({ t: Date.now(), event: eventName, payload: obj });
+      if (dlHistory.length > 25) dlHistory.shift();
+
+      log(`dataLayer.push event="${eventName}"`, obj);
+
+      if (eventName === "consent_status" && obj) {
+        lastConsentPayload = obj;
+        lastConsentEventName = "consent_status";
+        lastUcCategory = obj.ucCategory || null;
+
+        // Extract “service booleans”: keys with boolean values, excluding known non-service fields
+        const ignore = new Set(["event","action","type","ucCategory","gtm.uniqueEventId"]);
+        const services = {};
+        Object.keys(obj).forEach(k => {
+          if (ignore.has(k)) return;
+          if (typeof obj[k] === "boolean") services[k] = obj[k];
+        });
+        lastServiceFields = services;
+
+        log("UC consent_status captured", { ucCategory: lastUcCategory, services });
+        updateUI(); // immediate refresh
+        updateCookieDiff(); // after consent events, cookie behavior matters
+      }
+
+      return originalPush.apply(window.dataLayer, args);
+    };
+
+    /*****************************************************************
+     * Cookie diff tracking
+     *****************************************************************/
+    let lastCookieDiff = { added: [], removed: [], changed: [] };
+    function updateCookieDiff() {
+      const now = getCookieMap();
+      lastCookieDiff = diffCookies(cookieBase, now);
+      log("Cookie diff updated after consent event", lastCookieDiff);
+      updateUI();
+    }
+
+    /*****************************************************************
+     * UI updates
+     *****************************************************************/
+    function updateUI() {
+      const k_ucMarketing = document.getElementById("k_ucMarketing");
+      const k_uetPresent = document.getElementById("k_uetPresent");
+      const k_uetAdStorage = document.getElementById("k_uetAdStorage");
+      const k_clarityStub = document.getElementById("k_clarityStub");
+      const k_clarityRes = document.getElementById("k_clarityRes");
+      const k_clarityCookies = document.getElementById("k_clarityCookies");
+      const k_claritySession = document.getElementById("k_claritySession");
+
+      // UC marketing
+      let m = "unknown";
+      if (lastUcCategory && typeof lastUcCategory.marketing === "boolean") m = lastUcCategory.marketing;
+      badge(k_ucMarketing, m === "unknown" ? "unknown" : m);
+
+      // UET
+      const uet = readUetEnableAdStorage();
+      badge(k_uetPresent, uet.present ? true : false);
+
+      if (uet.enableAdStorage === "unknown") badge(k_uetAdStorage, "unknown");
+      else badge(k_uetAdStorage, !!uet.enableAdStorage);
+
+      // perf evidence
+      const perfList = getPerfResources();
+      const clarityEv = computeClarityEvidence(getCookieMap(), perfList);
+
+      badge(k_clarityStub, clarityEv.hasStub);
+      badge(k_clarityRes, clarityEv.hasRuntime);
+      badge(k_clarityCookies, clarityEv.clarityCookies.length > 0);
+      // Session evidence boolean
+      if (clarityEv.sessionBool === "unknown") badge(k_claritySession, "unknown");
+      else badge(k_claritySession, !!clarityEv.sessionBool);
+
+      // Quick evidence
+      document.getElementById("q_eventName").textContent = lastConsentEventName || "—";
+      document.getElementById("q_ucCategory").textContent = lastUcCategory ? safeStringify(lastUcCategory, 2) : "—";
+      document.getElementById("q_services").textContent = lastServiceFields ? safeStringify(lastServiceFields, 2) : "—";
+      document.getElementById("q_cookieDiff").textContent =
+        `added=${lastCookieDiff.added.length}, removed=${lastCookieDiff.removed.length}, changed=${lastCookieDiff.changed.length}`;
+
+      document.getElementById("q_uetTiming").textContent =
+        uetConfigFirstSeenAt ? `uetConfig first seen at +${uetConfigFirstSeenAt}ms` : "uetConfig not seen yet";
+
+      document.getElementById("q_clarityTiming").textContent =
+        clarityStubFirstSeenAt ? `clarity() stub first seen at +${clarityStubFirstSeenAt}ms` : "clarity() stub not seen yet";
+
+      if (clarityEv.hasRuntime && clarityEv.clarityRuntime) {
+        document.getElementById("q_clarityResTiming").textContent =
+          `clarity runtime downloaded at ~+${clarityEv.clarityRuntime.firstStartTime}ms (${clarityEv.clarityRuntime.count} resource(s))`;
+      } else {
+        document.getElementById("q_clarityResTiming").textContent = "No clarity.ms resource entries yet";
+      }
+
+      document.getElementById("q_claritySessionText").textContent = clarityEv.sessionText;
+      document.getElementById("q_clarityCookieList").textContent = clarityEv.clarityCookies.length ? clarityEv.clarityCookies.join(", ") : "(none visible to JS)";
+      document.getElementById("q_uetCookieList").textContent = clarityEv.uetCookies.length ? clarityEv.uetCookies.join(", ") : "(none visible to JS)";
+
+      const evidenceBits = [
+        `gtm=${!!window.google_tag_manager || !!window.google_tag_manager}`, // weak but ok
+        `uc=${detectUcGlobals().found ? "true" : "unknown"}`,
+        `uetBat=${perfList.some(r => (r.name||"").includes("bat.bing.com/bat.js"))}`,
+        `clarityTag=${perfList.some(r => (r.name||"").includes("clarity.ms/tag/"))}`
+      ];
+      document.getElementById("q_loadedEvidence").textContent = evidenceBits.join(", ");
+
+      // Deep dump preview
+      document.getElementById("d_all").textContent = safeStringify(buildDumpObject(), 2);
+    }
+
+    /*****************************************************************
+     * Detect UC globals on window (best-effort)
+     *****************************************************************/
+    function detectUcGlobals() {
+      const out = {};
+      const keys = Object.keys(window);
+      const candidates = keys.filter(k =>
+        k.toLowerCase().includes("usercentrics") ||
+        k.toLowerCase().includes("uc_") ||
+        k.toLowerCase().includes("uc") && (k.toLowerCase().includes("cmp") || k.toLowerCase().includes("consent"))
+      );
+
+      // Also common known-ish keys:
+      const known = ["UC_UI", "UC_UI_SUPPRESS_CMP_DISPLAY", "UC_UI_INITIALIZED", "Usercentrics", "usercentrics"];
+      const merged = Array.from(new Set([...candidates, ...known])).filter(k => k in window);
+
+      merged.slice(0, 30).forEach(k => {
+        try {
+          const v = window[k];
+          if (typeof v === "function") out[k] = `[Function ${v.name || "anonymous"}]`;
+          else if (typeof v === "object") out[k] = `[Object ${v && v.constructor ? v.constructor.name : "Object"}]`;
+          else out[k] = v;
+        } catch(e) {
+          out[k] = `[unreadable: ${String(e)}]`;
+        }
+      });
+
+      return { found: merged.length > 0, keys: merged, summary: out };
+    }
+
+    /*****************************************************************
+     * Build a dump object that is safe to stringify and useful
+     *****************************************************************/
+    function buildDumpObject() {
+      const cookies = getCookieMap();
+      const perf = getPerfResources();
+      const clarityEv = computeClarityEvidence(cookies, perf);
+      const uet = readUetEnableAdStorage();
+      const uc = detectUcGlobals();
+
+      // Avoid dumping raw uetq if it has cycles; provide a trimmed view
+      const uetSafe = {
+        uetqPresent: !!window.uetq,
+        uetqType: window.uetq ? Object.prototype.toString.call(window.uetq) : null,
+        uetConfig: (window.uetq && window.uetq.uetConfig) ? {
+          enableAdStorage: window.uetq.uetConfig.enableAdStorage,
+          // include a few likely useful fields if present:
+          ...pick(window.uetq.uetConfig, ["ti","tagId","uetid","isEnabled","isConsentModeEnabled","consentState"])
+        } : null
       };
 
-      const $ = (id) => document.getElementById(id);
-      const msSinceStart = () => Math.round(performance.now() - START);
+      // Clarity: stub is function; queue may exist at clarity.q
+      const claritySafe = {
+        clarityPresent: typeof window.clarity === "function",
+        clarityType: typeof window.clarity,
+        clarityQueueLength: (window.clarity && window.clarity.q && Array.isArray(window.clarity.q)) ? window.clarity.q.length : null
+      };
 
-      function escapeHtml(s){
-        return String(s).replace(/[&<>"']/g, (m)=>({
-          "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-        }[m]));
+      return {
+        meta: {
+          url: location.href,
+          userAgent: navigator.userAgent,
+          ts: new Date().toISOString()
+        },
+        consent: {
+          lastConsentEventName,
+          lastConsentPayload
+        },
+        ucCategory: lastUcCategory,
+        serviceBooleans: lastServiceFields,
+        uet: uetSafe,
+        uetLive: uet,
+        clarity: claritySafe,
+        clarityEvidence: {
+          stubPresent: clarityEv.hasStub,
+          runtimeDownloaded: clarityEv.hasRuntime,
+          runtimeFirstStartTime: clarityEv.clarityRuntime ? clarityEv.clarityRuntime.firstStartTime : null,
+          runtimeFirstUrl: clarityEv.clarityRuntime ? clarityEv.clarityRuntime.firstUrl : null,
+          clarityCookies: clarityEv.clarityCookies,
+          uetCookies: clarityEv.uetCookies,
+          sessionText: clarityEv.sessionText
+        },
+        cookieDiffSinceLoad: lastCookieDiff,
+        cookiesVisibleToJS: Object.keys(cookies).sort(),
+        cookiesRawMapSample: pick(cookies, ["_clck","_clsk","_uetsid","_uetvid"]),
+        perfEvidence: {
+          hasBatJs: perf.some(r => (r.name||"").includes("bat.bing.com/bat.js")),
+          clarityResources: clarityEv.clarityRuntime ? clarityEv.clarityRuntime.hits : [],
+          sampleFirst30: perf.slice(0, 30)
+        },
+        dataLayerLast25: dlHistory,
+        ucGlobals: uc
+      };
+    }
+
+    function pick(obj, keys) {
+      const out = {};
+      if (!obj) return out;
+      keys.forEach(k => { if (k in obj) out[k] = obj[k]; });
+      return out;
+    }
+
+    /*****************************************************************
+     * Poll for UET/Clarity timings
+     *****************************************************************/
+    function pollSignals() {
+      const now = Math.round(performance.now());
+
+      // UET present?
+      if (!uetFirstSeenAt && window.uetq) {
+        uetFirstSeenAt = now;
+        log("UET detected: window.uetq present");
+      }
+      if (!uetConfigFirstSeenAt && window.uetq && window.uetq.uetConfig) {
+        uetConfigFirstSeenAt = now;
+        log("UET detected: uetConfig present");
       }
 
-      function toast(msg, type="info"){
-        const color = type === "good" ? "rgba(34,197,94,1)" :
-                      type === "bad"  ? "rgba(239,68,68,1)" :
-                      type === "warn" ? "rgba(245,158,11,1)" : "rgba(96,165,250,1)";
-        const el = document.createElement("div");
-        el.className = "panel p-2 mb-2";
-        el.style.background = "rgba(0,0,0,.35)";
-        el.innerHTML = `
-          <div class="d-flex align-items-center gap-2">
-            <span style="width:10px;height:10px;border-radius:99px;background:${color};display:inline-block"></span>
-            <div class="mono" style="font-size:12px">${escapeHtml(msg)}</div>
-          </div>
-        `;
-        $("toastContainer").appendChild(el);
-        setTimeout(()=>{ el.remove(); }, 2400);
+      // Clarity stub present?
+      if (!clarityStubFirstSeenAt && typeof window.clarity === "function") {
+        clarityStubFirstSeenAt = now;
+        log("Clarity detected: window.clarity stub present");
       }
 
-      function log(msg, obj){
-        const line = `[${ISO()} | +${msSinceStart()}ms] ${msg}`;
-        state.logLines.push({ t: Date.now(), line, obj: obj ?? null });
-        const out = obj ? `\n${JSON.stringify(obj, null, 2)}` : "";
-        $("log").textContent += ( $("log").textContent ? "\n" : "" ) + line + out;
-        $("log").scrollTop = $("log").scrollHeight;
-        console.log(line, obj ?? "");
-      }
-
-      function setPill(id, value){
-        const node = $(id);
-        node.classList.remove("good","bad","warn","info");
-        if (value === true) { node.textContent = "true"; node.classList.add("good"); }
-        else if (value === false) { node.textContent = "false"; node.classList.add("bad"); }
-        else if (value === "partial") { node.textContent = "partial"; node.classList.add("warn"); }
-        else if (value === "unknown") { node.textContent = "unknown"; node.classList.add("warn"); }
-        else { node.textContent = String(value); node.classList.add("info"); }
-      }
-
-      function parseCookies(){
-        const raw = document.cookie || "";
-        const map = {};
-        raw.split(";").map(x=>x.trim()).filter(Boolean).forEach(pair=>{
-          const idx = pair.indexOf("=");
-          const k = idx >= 0 ? pair.slice(0, idx) : pair;
-          const v = idx >= 0 ? pair.slice(idx+1) : "";
-          map[k] = v;
-        });
-        return map;
-      }
-
-      function cookieDiff(a, b){
-        const aK = new Set(Object.keys(a||{}));
-        const bK = new Set(Object.keys(b||{}));
-        const added=[], removed=[], changed=[];
-        for (const k of bK) if (!aK.has(k)) added.push(k);
-        for (const k of aK) if (!bK.has(k)) removed.push(k);
-        for (const k of bK) if (aK.has(k) && a[k] !== b[k]) changed.push(k);
-        return { added, removed, changed };
-      }
-
-      function clarityStubPresent(){
-        return (typeof window.clarity === "function");
-      }
-
-      function clarityRuntimeResource(){
-        // IMPORTANT: Stub is not proof. Runtime evidence means an actual network resource.
-        try{
-          const entries = performance.getEntriesByType("resource") || [];
-          const hit = entries.find(e => typeof e.name === "string" && e.name.includes("clarity.ms"));
-          return hit ? hit.name : null;
-        }catch{ return null; }
-      }
-
-      function uetPresent(){ return typeof window.uetq !== "undefined"; }
-
-      function uetEnableAdStorage(){
-        try{
-          if (window.uetq && window.uetq.uetConfig && typeof window.uetq.uetConfig.enableAdStorage === "boolean") {
-            return window.uetq.uetConfig.enableAdStorage;
-          }
-          return "unknown";
-        }catch{ return "unknown"; }
-      }
-
-      function parseConsentStatusPush(obj){
-        if (!obj || obj.event !== "consent_status") return null;
-        const ucCategory = obj.ucCategory || null;
-        const exclude = new Set(["event","action","type","ucCategory","gtm.uniqueEventId"]);
-        const services = {};
-        for (const [k,v] of Object.entries(obj)) {
-          if (exclude.has(k)) continue;
-          if (typeof v === "boolean") services[k] = v;
-        }
-        return { ucCategory, services, raw: obj };
-      }
-
-      function updateQuickEvidence(){
-        $("lastEventName").textContent = state.lastConsentEvent || "—";
-        $("ucCategoryRaw").textContent = state.lastUcCategory ? JSON.stringify(state.lastUcCategory, null, 2) : "—";
-        $("serviceRaw").textContent = state.lastServiceBooleans ? JSON.stringify(state.lastServiceBooleans, null, 2) : "—";
-
-        $("cookieDiffSummary").textContent =
-          `added=${state.cookieDiff.added.length}, removed=${state.cookieDiff.removed.length}, changed=${state.cookieDiff.changed.length}`;
-
-        $("uetTiming").textContent = state.firstSeen.uetConfig != null
-          ? `uetConfig first seen at +${state.firstSeen.uetConfig}ms` : "—";
-
-        $("clarityTiming").textContent = state.firstSeen.clarityStub != null
-          ? `clarity() stub first seen at +${state.firstSeen.clarityStub}ms` : "—";
-
-        $("clarityResourceLine").textContent = state.firstSeen.clarityRuntime != null
-          ? `clarity runtime downloaded at ~+${state.firstSeen.clarityRuntime}ms` : "clarity runtime not detected (no resource)";
-      }
-
-      function updateEvidence(){
-        const cookies = parseCookies();
-        const hasClarityCookies = ("_clck" in cookies) || ("_clsk" in cookies);
-
-        const runtime = clarityRuntimeResource();
-        const runtimeLoaded = !!runtime;
-        const stub = clarityStubPresent();
-
-        // record first runtime moment
-        if (runtimeLoaded && state.firstSeen.clarityRuntime == null) state.firstSeen.clarityRuntime = msSinceStart();
-
-        // loaded script evidence
-        const perf = performance.getEntriesByType("resource") || [];
-        const gtmLoaded = perf.some(e => (e.name||"").includes("googletagmanager.com/gtm.js"));
-        const ucLoaded  = perf.some(e => (e.name||"").toLowerCase().includes("usercentrics"));
-        const uetLoaded = perf.some(e => (e.name||"").includes("bat.bing.com/bat.js"));
-        $("loadedEvidenceLine").textContent = `gtm=${gtmLoaded}, uc=${ucLoaded}, uetBat=${uetLoaded}, clarityTag=${runtimeLoaded}`;
-
-        // lists
-        const clarityList = [];
-        if ("_clck" in cookies) clarityList.push("_clck");
-        if ("_clsk" in cookies) clarityList.push("_clsk");
-        $("clarityCookiesList").textContent = clarityList.length ? clarityList.join(", ") : "(none visible to JS)";
-
-        const uetList = [];
-        ["_uetsid","_uetvid"].forEach(n => { if (n in cookies) uetList.push(n); });
-        $("uetCookiesList").textContent = uetList.length ? uetList.join(", ") : "(none visible to JS)";
-
-        // pills
-        setPill("pClarityStub", stub);
-        setPill("pClarityLoaded", runtimeLoaded);
-        setPill("pClarityCookies", hasClarityCookies);
-
-        // session evidence inference
-        let title = "—";
-        let session = "unknown";
-        if (!runtimeLoaded && !hasClarityCookies) { title = "NOT LOADED — No Clarity runtime resource + no cookies. No session recording/collection on this page."; session = false; }
-        else if (runtimeLoaded && !hasClarityCookies) { title = "LOADED WITHOUT COOKIES — Runtime loaded but no _clck/_clsk. No cookie-based session linking (anonymous / no stitching)."; session = "partial"; }
-        else if (runtimeLoaded && hasClarityCookies) { title = "PERSISTENT LINKING ENABLED — _clck/_clsk present. Sessions can be linked across pages/visits (non-anonymous)."; session = true; }
-        else { title = "INCONCLUSIVE — Signals are inconsistent. Use Network tab + Dump everything."; session = "unknown"; }
-
-        $("clarityEvidenceTitle").textContent = title;
-        setPill("pClaritySession", session);
-      }
-
-      function updateHighLevel(){
-        const marketing = state.lastUcCategory?.marketing;
-        setPill("pMarketing", (typeof marketing === "boolean") ? marketing : "unknown");
-
-        setPill("pUetPresent", uetPresent() ? true : "unknown");
-
-        const ad = uetEnableAdStorage();
-        setPill("pUetAd", ad === "unknown" ? "partial" : !!ad);
-      }
-
-      function snapshot(reason){
-        const cookies = parseCookies();
-        const snap = {
-          reason,
-          marketingConsent: (typeof state.lastUcCategory?.marketing === "boolean") ? state.lastUcCategory.marketing : "unknown",
-          lastConsentEvent: state.lastConsentEvent,
-          lastUcCategory: state.lastUcCategory,
-          lastServiceBooleans: state.lastServiceBooleans,
-          uet: { present: !!window.uetq, enableAdStorage: uetEnableAdStorage() },
-          clarity: { stubPresent: clarityStubPresent(), runtimeResource: clarityRuntimeResource() },
-          cookies: { names: Object.keys(cookies).sort() },
-          cookieDiffSinceLoad: state.cookieDiff,
-          firstSeen: state.firstSeen
-        };
-        log(`SNAPSHOT (${reason})`, snap);
-        updateAll();
-      }
-
-      function safeClone(obj){
-        try{
-          if (obj === null || obj === undefined) return obj;
-          if (typeof obj === "function") return { __type:"function", name: obj.name || "(anonymous)" };
-          if (Array.isArray(obj)) return obj.slice(0, 1000);
-          if (typeof obj === "object") {
-            const out = {};
-            for (const k of Object.keys(obj).slice(0, 300)) {
-              const v = obj[k];
-              out[k] = (typeof v === "function") ? { __type:"function", name: v.name || "(anonymous)" } : v;
-            }
-            return out;
-          }
-          return obj;
-        }catch(e){
-          return { __error: String(e) };
+      // Clarity runtime via perf?
+      if (!clarityRuntimeFirstSeenAt) {
+        const perf = getPerfResources();
+        const hit = findClarityRuntime(perf);
+        if (hit) {
+          clarityRuntimeFirstSeenAt = hit.firstStartTime;
+          log("Clarity runtime resource detected (clarity.ms)", { firstStartTime: hit.firstStartTime, firstUrl: hit.firstUrl, count: hit.count });
         }
       }
 
-      function dumpEverything(){
-        const cookies = parseCookies();
-        const resources = (performance.getEntriesByType("resource") || []).map(e => ({
-          name: e.name, initiatorType: e.initiatorType,
-          startTime: Math.round(e.startTime), duration: Math.round(e.duration)
-        }));
+      updateUI();
+      requestAnimationFrame(pollSignals);
+    }
 
-        return {
-          meta: {
-            page: location.href,
-            timestamp: new Date().toISOString(),
-            gtmId: state.gtmId,
-            userAgent: navigator.userAgent
-          },
-          consent: {
-            lastConsentEvent: state.lastConsentEvent,
-            lastUcCategory: state.lastUcCategory,
-            lastServiceBooleans: state.lastServiceBooleans,
-            lastDataLayerPush: state.lastDataLayerPush
-          },
-          uet: {
-            uetqType: typeof window.uetq,
-            uetqPresent: !!window.uetq,
-            uetq: safeClone(window.uetq),
-            uetConfig: safeClone(window.uetq && window.uetq.uetConfig ? window.uetq.uetConfig : null),
-            enableAdStorage: uetEnableAdStorage()
-          },
-          clarity: {
-            clarityType: typeof window.clarity,
-            stubPresent: clarityStubPresent(),
-            clarity: safeClone(window.clarity),
-            runtimeResource: clarityRuntimeResource(),
-            cookies: ["_clck","_clsk"].filter(n => n in cookies)
-          },
-          cookies: { all: Object.keys(cookies).sort(), map: cookies },
-          cookieDiffSinceLoad: state.cookieDiff,
-          firstSeen: state.firstSeen,
-          performanceResources: resources,
-          logLines: state.logLines
-        };
+    /*****************************************************************
+     * Buttons
+     *****************************************************************/
+    document.getElementById("btnClear").addEventListener("click", () => {
+      logEl.textContent = "";
+      log("Log cleared.");
+    });
+
+    document.getElementById("btnSnapshot").addEventListener("click", () => {
+      log("SNAPSHOT (manual)", buildDumpObject());
+      updateUI();
+    });
+
+    document.getElementById("btnDump").addEventListener("click", () => {
+      const dump = buildDumpObject();
+      log("DUMP (manual)", dump);
+      updateUI();
+    });
+
+    async function copyToClipboard(text) {
+      // Try modern clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
       }
+      // Fallback: hidden textarea + execCommand
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      ta.style.top = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      if (!ok) throw new Error("execCommand(copy) failed");
+      return true;
+    }
 
-      async function tryClipboard(text){
-        // Attempt modern Clipboard API first
-        if (navigator.clipboard && window.isSecureContext) {
-          try { await navigator.clipboard.writeText(text); return true; } catch {}
-        }
-        // Fallback: execCommand
-        try{
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          ta.style.position = "fixed";
-          ta.style.left = "-9999px";
-          ta.style.top = "-9999px";
-          document.body.appendChild(ta);
-          ta.focus();
-          ta.select();
-          const ok = document.execCommand("copy");
-          ta.remove();
-          return ok;
-        }catch{
-          return false;
-        }
+    document.getElementById("btnCopyDump").addEventListener("click", async () => {
+      const status = document.getElementById("copyStatus");
+      status.textContent = "";
+      try {
+        const dumpObj = buildDumpObject();
+        const json = safeStringify(dumpObj, 2);
+        await copyToClipboard(json);
+        status.textContent = "Copied ✓";
+        log("Copy dump JSON: success");
+      } catch (e) {
+        status.textContent = "Copy failed (see console)";
+        log("Copy dump JSON: failed", { error: String(e) });
       }
+    });
 
-      function openCopyModal(json){
-        $("copyArea").value = json;
-        const modal = new bootstrap.Modal($("#copyModal"));
-        modal.show();
-        setTimeout(()=>{
-          $("copyArea").focus();
-          $("copyArea").select();
-        }, 250);
-      }
+    /*****************************************************************
+     * Init
+     *****************************************************************/
+    log("Initialized. Capturing dataLayer pushes and monitoring UET/Clarity.");
+    updateUI();
 
-      function interceptDataLayer(){
-        window.dataLayer = window.dataLayer || [];
-        const dl = window.dataLayer;
-        const originalPush = dl.push.bind(dl);
+    // Snapshots at common times
+    setTimeout(() => log("SNAPSHOT (T+3s)", buildDumpObject()), 3000);
+    setTimeout(() => log("SNAPSHOT (T+10s)", buildDumpObject()), 10000);
 
-        dl.push = function(){
-          for (const arg of arguments) {
-            try{
-              if (arg && typeof arg === "object") {
-                const ev = arg.event ? String(arg.event) : "";
-                log(`dataLayer.push event="${ev || "(none)"}"`, arg);
-                state.lastDataLayerPush = arg;
-
-                const parsed = parseConsentStatusPush(arg);
-                if (parsed) {
-                  state.lastConsentEvent = "consent_status";
-                  state.lastUcCategory = parsed.ucCategory;
-                  state.lastServiceBooleans = parsed.services;
-                  log("UC consent_status captured", { ucCategory: parsed.ucCategory, services: parsed.services });
-
-                  setTimeout(()=>{
-                    updateAll();
-                    log("Cookie diff updated after consent event", state.cookieDiff);
-                  }, 250);
-                }
-              }
-            }catch(e){
-              log("Error processing dataLayer push", { error: String(e) });
-            }
-          }
-          return originalPush.apply(null, arguments);
-        };
-      }
-
-      function updateAll(){
-        // cookies
-        const now = parseCookies();
-        if (!state.cookieBaseline) state.cookieBaseline = now;
-        state.cookieDiff = cookieDiff(state.cookieBaseline, now);
-
-        // firstSeen
-        if (state.firstSeen.uetq == null && window.uetq) state.firstSeen.uetq = msSinceStart();
-        if (state.firstSeen.uetConfig == null && window.uetq && window.uetq.uetConfig) state.firstSeen.uetConfig = msSinceStart();
-        if (state.firstSeen.clarityStub == null && clarityStubPresent()) state.firstSeen.clarityStub = msSinceStart();
-
-        updateEvidence();
-        updateQuickEvidence();
-        updateHighLevel();
-      }
-
-      // Buttons
-      $("btnSnapshot").addEventListener("click", ()=> snapshot("manual"));
-      $("btnDump").addEventListener("click", ()=>{
-        const dump = dumpEverything();
-        log("DUMP (full)", dump);
-        toast("Dump logged to timeline.", "good");
-      });
-
-      $("btnCopyJson").addEventListener("click", async ()=>{
-        const dump = dumpEverything();
-        const json = JSON.stringify(dump, null, 2);
-
-        const ok = await tryClipboard(json);
-        if (ok) {
-          toast("Copied full JSON dump to clipboard.", "good");
-        } else {
-          toast("Clipboard blocked. Opening modal fallback.", "warn");
-          openCopyModal(json);
-        }
-      });
-
-      $("btnModalCopy").addEventListener("click", async ()=>{
-        const json = $("copyArea").value || "";
-        const ok = await tryClipboard(json);
-        if (ok) toast("Copied from modal.", "good");
-        else toast("Copy still blocked. Select all and copy manually.", "bad");
-      });
-
-      $("btnClear").addEventListener("click", ()=>{
-        $("log").textContent = "";
-        state.logLines = [];
-        toast("Log cleared.", "info");
-      });
-
-      // Init
-      $("gtmId").textContent = state.gtmId;
-      log("Initialized. Capturing dataLayer pushes and monitoring UET/Clarity.");
-      interceptDataLayer();
-
-      // baseline
-      state.cookieBaseline = parseCookies();
-
-      // periodic updates
-      setInterval(updateAll, 750);
-
-      // snapshots
-      setTimeout(()=> snapshot("On load"), 25);
-      setTimeout(()=> snapshot("T+3s"), 3000);
-      setTimeout(()=> snapshot("T+10s"), 10000);
-    })();
+    // Start polling loop
+    requestAnimationFrame(pollSignals);
   </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
