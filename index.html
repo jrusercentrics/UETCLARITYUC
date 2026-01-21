@@ -49,6 +49,30 @@
     .success-note{ background:#ecfdf5; border:1px solid #bbf7d0; color:#065f46; border-radius:12px; padding:10px 12px; }
     .btn-sm{ border-radius:10px; }
   </style>
+<!-- Google Consent Mode v2: HARD default (debug) -->
+<script>
+  // 1) Ensure dataLayer exists BEFORE GTM
+  window.dataLayer = window.dataLayer || [];
+
+  // 2) Define gtag stub that pushes into dataLayer
+  function gtag(){ window.dataLayer.push(arguments); }
+
+  // 3) Set Consent Mode DEFAULTS (GDPR-style)
+  //    wait_for_update gives the CMP a short window to send "update" during the same page load.
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    analytics_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    wait_for_update: 2000
+  });
+
+  // Optional: reduce data leakage when denied (Google Ads)
+  gtag('set', 'ads_data_redaction', true);
+
+  // Debug marker so you can see it in console easily
+  console.log('[GCM] default injected', window.dataLayer[window.dataLayer.length - 2], window.dataLayer[window.dataLayer.length - 1]);
+</script>
 
   <!-- Google Tag Manager -->
   <script>
