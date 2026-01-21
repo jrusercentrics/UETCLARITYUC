@@ -2,22 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Test Site — GTM + Usercentrics + UET + Clarity (Debug)</title>
+  <title>Consent Validation — Usercentrics + GTM + UET + Clarity</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Bootstrap 5 (CDN) -->
+  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <!-- Create dataLayer early (GTM & UC may push into it) -->
+  <!-- dataLayer early -->
   <script>
     window.dataLayer = window.dataLayer || [];
   </script>
 
-  <!-- Google Tag Manager (ONLY thing the page "installs") -->
+  <!-- Google Tag Manager -->
   <script>
     (function(w,d,s,l,i){
       w[l]=w[l]||[];
-      w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
+      w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
       var f=d.getElementsByTagName(s)[0],
           j=d.createElement(s),
           dl=l!='dataLayer'?'&l='+l:'';
@@ -29,520 +29,189 @@
   <!-- End GTM -->
 
   <style>
-    body { background:#0b1020; }
-    .muted { color: rgba(255,255,255,.7); }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    body { background:#0b1020; color:#fff; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
     .card { border:0; }
-    .badge-soft {
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.12);
-      color: rgba(255,255,255,.9);
-    }
     .log {
-      height: 340px;
-      overflow: auto;
-      background: #070b16;
-      border: 1px solid rgba(255,255,255,.1);
-      border-radius: 14px;
-      padding: 12px;
-      color: rgba(255,255,255,.92);
-      white-space: pre-wrap;
+      background:#050814;
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:12px;
+      padding:12px;
+      max-height:260px;
+      overflow:auto;
+      white-space:pre-wrap;
+      font-size:13px;
     }
-    .table td, .table th { vertical-align: middle; }
+    .badge-unknown { background:#6c757d; }
+    .badge-true { background:#198754; }
+    .badge-false { background:#dc3545; }
   </style>
 </head>
 
-<body class="text-white">
-  <!-- GTM noscript -->
-  <noscript>
-    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5TXPGTVF"
-            height="0" width="0" style="display:none;visibility:hidden"></iframe>
-  </noscript>
+<body>
+<noscript>
+  <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5TXPGTVF"
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
 
-  <div class="container py-4">
-    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
-      <div>
-        <h1 class="fw-bold mb-1">Consent Debug Site</h1>
-        <div class="muted">
-          This page installs <span class="mono">GTM-5TXPGTVF</span> only.
-          Usercentrics, UET and Clarity should be deployed via GTM.
-        </div>
-      </div>
-      <div class="d-flex gap-2 flex-wrap">
-        <span class="badge badge-soft mono">GTM: GTM-5TXPGTVF</span>
-        <span class="badge badge-soft mono">UET ti: 97203970</span>
-        <span class="badge badge-soft mono">Clarity: t1v96lor2o</span>
-      </div>
-    </div>
+<div class="container py-4">
 
-    <div class="row g-3 mt-3">
-      <!-- Usercentrics / Consent signals -->
-      <div class="col-12 col-lg-4">
-        <div class="card bg-dark text-white shadow-sm rounded-4">
-          <div class="card-body">
-            <h5 class="fw-semibold mb-3">1) Usercentrics / Consent Signals</h5>
+  <header class="mb-4">
+    <h1 class="fw-bold">Consent Validation Site</h1>
+    <p class="text-muted">
+      Runtime validation for <span class="mono">Usercentrics</span>,
+      <span class="mono">Microsoft UET</span> and
+      <span class="mono">Microsoft Clarity</span>.
+      <br>
+      This page installs <strong>GTM only</strong>. All other tools must be deployed via GTM.
+    </p>
+  </header>
 
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <div class="muted">dataLayer is present</div>
-              <span id="dlPresent" class="badge bg-secondary">unknown</span>
-            </div>
+  <div class="row g-3">
 
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <div class="muted">Last UC-related event</div>
-              <span id="ucLastEvent" class="badge bg-secondary mono">unknown</span>
-            </div>
+    <!-- Usercentrics -->
+    <div class="col-md-4">
+      <div class="card bg-dark rounded-4 shadow-sm">
+        <div class="card-body">
+          <h5 class="fw-semibold">1) Usercentrics</h5>
 
-            <div class="small muted mt-2">
-              This page listens to ALL <span class="mono">dataLayer.push()</span> calls and will highlight likely consent events:
-              <span class="mono">consent_update</span>, <span class="mono">consent_status</span>, and any event containing "consent"/"uc".
-            </div>
+          <p class="mb-1">Marketing consent</p>
+          <span id="ucMarketing" class="badge badge-unknown mono">unknown</span>
 
-            <hr class="border-secondary my-3" />
+          <hr>
 
-            <h6 class="fw-semibold mb-2">Discovered service consents</h6>
-            <div class="table-responsive">
-              <table class="table table-dark table-sm mb-0">
-                <thead>
-                  <tr>
-                    <th class="muted">Key</th>
-                    <th class="muted text-end">Value</th>
-                  </tr>
-                </thead>
-                <tbody id="ucServicesTbody">
-                  <tr>
-                    <td class="muted" colspan="2">No service consent fields seen yet.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="small muted mt-3">
-              Tip (optional): in Usercentrics Admin you can define a Window Event (e.g. "ucEvent") that exposes consent details via <span class="mono">event.detail</span>.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- UET -->
-      <div class="col-12 col-lg-4">
-        <div class="card bg-dark text-white shadow-sm rounded-4">
-          <div class="card-body">
-            <h5 class="fw-semibold mb-3">2) Microsoft UET (runtime status)</h5>
-
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <div class="muted">window.uetq present</div>
-              <span id="uetQueue" class="badge bg-secondary">unknown</span>
-            </div>
-
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <div class="muted">window.uetq.uetConfig present</div>
-              <span id="uetConfig" class="badge bg-secondary">unknown</span>
-            </div>
-
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <div class="muted">uetConfig.enableAdStorage</div>
-              <span id="uetAdStorage" class="badge bg-secondary mono">unknown</span>
-            </div>
-
-            <div class="d-flex gap-2 mt-3 flex-wrap">
-              <button id="btnUetPing" class="btn btn-outline-light btn-sm rounded-3">
-                Push UET debug event
-              </button>
-              <button id="btnDlUet" class="btn btn-outline-light btn-sm rounded-3">
-                dataLayer: test_uet_event
-              </button>
-            </div>
-
-            <div class="small muted mt-3">
-              Note: if UET is loaded via GTM, <span class="mono">uetConfig</span> may appear a bit later.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Clarity -->
-      <div class="col-12 col-lg-4">
-        <div class="card bg-dark text-white shadow-sm rounded-4">
-          <div class="card-body">
-            <h5 class="fw-semibold mb-3">3) Microsoft Clarity (runtime status)</h5>
-
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <div class="muted">window.clarity function</div>
-              <span id="clarityFn" class="badge bg-secondary">unknown</span>
-            </div>
-
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <div class="muted">Last consent we sent</div>
-              <span id="clarityConsent" class="badge bg-secondary mono">unknown</span>
-            </div>
-
-            <div class="d-flex gap-2 mt-3 flex-wrap">
-              <button id="btnClarityTrue" class="btn btn-outline-light btn-sm rounded-3">
-                clarity('consent', true)
-              </button>
-              <button id="btnClarityFalse" class="btn btn-outline-light btn-sm rounded-3">
-                clarity('consent', false)
-              </button>
-              <button id="btnDlClarity" class="btn btn-outline-light btn-sm rounded-3">
-                dataLayer: test_clarity_event
-              </button>
-            </div>
-
-            <div class="small muted mt-3">
-              If Clarity is loaded via GTM, <span class="mono">window.clarity</span> will appear only after its tag fires.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Timeline -->
-      <div class="col-12">
-        <div class="card bg-dark text-white shadow-sm rounded-4">
-          <div class="card-body">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-              <h5 class="fw-semibold mb-0">4) Timeline / Debug Log</h5>
-              <div class="d-flex gap-2">
-                <button id="btnClear" class="btn btn-outline-light btn-sm rounded-3">Clear</button>
-                <button id="btnDump" class="btn btn-outline-light btn-sm rounded-3">Dump state</button>
-              </div>
-            </div>
-            <div class="log mono mt-3" id="log"></div>
-
-            <div class="small muted mt-2">
-              Also check DevTools → Network for <span class="mono">bat.js</span>, <span class="mono">bing</span>, <span class="mono">clarity</span>.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- How to use -->
-      <div class="col-12">
-        <div class="alert alert-dark border-0 rounded-4">
-          <div class="fw-semibold">How to use</div>
-          <ol class="mb-0 mt-2">
-            <li>Deploy Usercentrics via GTM (UC CMP template) and publish the container.</li>
-            <li>Deploy UET and Clarity via GTM as well.</li>
-            <li>Open this page in an incognito window and interact with the UC banner.</li>
-            <li>Watch the log: you should see consent events and the UET/Clarity states changing accordingly.</li>
-          </ol>
+          <p class="small text-muted mb-0">
+            Source: <span class="mono">dataLayer consent_status</span><br>
+            Mapping: <strong>Marketing</strong>
+          </p>
         </div>
       </div>
     </div>
+
+    <!-- UET -->
+    <div class="col-md-4">
+      <div class="card bg-dark rounded-4 shadow-sm">
+        <div class="card-body">
+          <h5 class="fw-semibold">2) Microsoft UET</h5>
+
+          <p class="mb-1">UET loaded</p>
+          <span id="uetLoaded" class="badge badge-unknown mono">unknown</span>
+
+          <p class="mt-3 mb-1">enableAdStorage</p>
+          <span id="uetAdStorage" class="badge badge-unknown mono">unknown</span>
+
+          <hr>
+
+          <p class="small text-muted mb-0">
+            Source: <span class="mono">window.uetq.uetConfig</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clarity -->
+    <div class="col-md-4">
+      <div class="card bg-dark rounded-4 shadow-sm">
+        <div class="card-body">
+          <h5 class="fw-semibold">3) Microsoft Clarity</h5>
+
+          <p class="mb-1">Clarity loaded</p>
+          <span id="clarityLoaded" class="badge badge-unknown mono">unknown</span>
+
+          <hr>
+
+          <p class="small text-muted mb-0">
+            Source: <span class="mono">window.clarity</span><br>
+            Mode: <strong>Clarity Consent Mode (Marketing)</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="col-12">
+      <div class="card bg-dark rounded-4 shadow-sm">
+        <div class="card-body">
+          <h5 class="fw-semibold mb-3">4) Runtime Log</h5>
+          <div id="log" class="log mono"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
+</div>
 
-  <script>
-    // -------------------------
-    // Configuration (optional)
-    // -------------------------
-    // If your Usercentrics setup pushes service consent as fields, you can pin important ones here (keys must match).
-    // You can leave this empty and the UI will still auto-discover boolean-like fields.
-    const PINNED_SERVICE_KEYS = [
-      "Microsoft Advertising",
-      "Microsoft Clarity"
-    ];
+<script>
+(function(){
 
-    // If you configured a UC Window Event in the Admin (Implementation → Data Layer & Events),
-    // add its name here to listen for it (example: "ucEvent").
-    // Leaving it empty will still work (we'll listen to any custom events you add manually).
-    const OPTIONAL_UC_WINDOW_EVENTS = [
-      // "ucEvent"
-    ];
+  const state = {
+    marketing: "unknown",
+    uetLoaded: false,
+    uetAdStorage: "unknown",
+    clarityLoaded: false
+  };
 
-    // -------------------------
-    // UI helpers
-    // -------------------------
-    const $ = (id) => document.getElementById(id);
-    const logEl = $("log");
-    const servicesTbody = $("ucServicesTbody");
+  function log(msg, obj) {
+    const el = document.getElementById("log");
+    const line = `[${new Date().toISOString()}] ${msg}\n`;
+    el.textContent += line;
+    if (obj) el.textContent += JSON.stringify(obj, null, 2) + "\n";
+    el.scrollTop = el.scrollHeight;
+    console.log(msg, obj || "");
+  }
 
-    function ts() {
-      const d = new Date();
-      return d.toISOString().replace('T',' ').replace('Z','');
+  function badge(el, value) {
+    el.classList.remove("badge-unknown","badge-true","badge-false");
+    if (value === true) {
+      el.textContent = "true";
+      el.classList.add("badge-true");
+    } else if (value === false) {
+      el.textContent = "false";
+      el.classList.add("badge-false");
+    } else {
+      el.textContent = "unknown";
+      el.classList.add("badge-unknown");
     }
+  }
 
-    function safeJson(x) {
-      try { return JSON.stringify(x, null, 2); } catch { return String(x); }
-    }
+  // Hook dataLayer to capture Usercentrics consent
+  window.dataLayer = window.dataLayer || [];
+  const originalPush = window.dataLayer.push.bind(window.dataLayer);
 
-    function log(msg, obj) {
-      const line = `[${ts()}] ${msg}` + (obj !== undefined ? `\n${safeJson(obj)}\n` : "\n");
-      logEl.textContent += line;
-      logEl.scrollTop = logEl.scrollHeight;
-      console.log(msg, obj ?? "");
-    }
-
-    function setBadge(elId, value) {
-      const b = $(elId);
-      const v = (value === undefined || value === null) ? "unknown" : value;
-
-      b.textContent = String(v);
-      b.classList.remove("bg-secondary","bg-success","bg-danger","bg-warning","text-dark");
-
-      if (v === true || v === "true" || v === "present" || v === "loaded") b.classList.add("bg-success");
-      else if (v === false || v === "false" || v === "missing") b.classList.add("bg-danger");
-      else if (v === "partial") b.classList.add("bg-warning","text-dark");
-      else b.classList.add("bg-secondary");
-    }
-
-    // -------------------------
-    // Runtime state readers
-    // -------------------------
-    let lastClarityConsent = "unknown";
-    let lastUcEventName = "unknown";
-    let discoveredServiceConsents = {}; // key -> boolean
-
-    function readDataLayerPresence() {
-      setBadge("dlPresent", Array.isArray(window.dataLayer) ? "present" : "missing");
-    }
-
-    function readUETState() {
-      const uetq = window.uetq;
-      const hasQueue = !!uetq;
-      const hasConfig = !!uetq && !!uetq.uetConfig;
-
-      setBadge("uetQueue", hasQueue ? "present" : "missing");
-      setBadge("uetConfig", hasConfig ? "present" : (hasQueue ? "partial" : "missing"));
-
-      const enableAdStorage = hasConfig ? !!uetq.uetConfig.enableAdStorage : "unknown";
-      setBadge("uetAdStorage", enableAdStorage);
-
-      return { hasQueue, hasConfig, enableAdStorage };
-    }
-
-    function readClarityState() {
-      const hasFn = (typeof window.clarity === "function");
-      setBadge("clarityFn", hasFn ? "present" : "missing");
-      setBadge("clarityConsent", lastClarityConsent);
-      return { hasFn, lastClarityConsent };
-    }
-
-    function renderServiceConsents() {
-      const keys = new Set([...Object.keys(discoveredServiceConsents), ...PINNED_SERVICE_KEYS]);
-      const sorted = Array.from(keys).sort((a,b) => a.localeCompare(b));
-
-      if (sorted.length === 0) {
-        servicesTbody.innerHTML = `<tr><td class="muted" colspan="2">No service consent fields seen yet.</td></tr>`;
-        return;
-      }
-
-      let html = "";
-      for (const k of sorted) {
-        const v = discoveredServiceConsents[k];
-        let badgeClass = "bg-secondary";
-        let text = "unknown";
-        if (v === true) { badgeClass = "bg-success"; text = "true"; }
-        if (v === false) { badgeClass = "bg-danger"; text = "false"; }
-
-        html += `
-          <tr>
-            <td class="mono">${escapeHtml(k)}</td>
-            <td class="text-end"><span class="badge ${badgeClass} mono">${text}</span></td>
-          </tr>
-        `;
-      }
-      servicesTbody.innerHTML = html;
-    }
-
-    function escapeHtml(s) {
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    // -------------------------
-    // Consent signal extraction
-    // -------------------------
-    function isLikelyConsentEvent(obj) {
-      const e = (obj && obj.event) ? String(obj.event).toLowerCase() : "";
-      if (!e) return false;
-      if (e.includes("consent")) return true;
-      if (e.includes("uc")) return true;
-      if (e === "consent_update" || e === "consent_status") return true;
-      return false;
-    }
-
-    function extractBooleanFields(obj) {
-      // Usercentrics examples often include service names as fields with boolean values,
-      // or nested structures. We safely extract top-level booleans.
-      if (!obj || typeof obj !== "object") return;
-
-      for (const [k,v] of Object.entries(obj)) {
-        if (k === "event") continue;
-        if (typeof v === "boolean") {
-          discoveredServiceConsents[k] = v;
+  window.dataLayer.push = function(){
+    for (const item of arguments) {
+      if (item && item.event && item.event.includes("consent")) {
+        if (item.ucCategory && typeof item.ucCategory.marketing === "boolean") {
+          state.marketing = item.ucCategory.marketing;
+          badge(document.getElementById("ucMarketing"), state.marketing);
+          log("Usercentrics consent_status detected (marketing)", item.ucCategory);
         }
       }
-      renderServiceConsents();
+    }
+    return originalPush.apply(null, arguments);
+  };
+
+  function poll() {
+    // UET
+    if (window.uetq && window.uetq.uetConfig) {
+      state.uetLoaded = true;
+      state.uetAdStorage = !!window.uetq.uetConfig.enableAdStorage;
     }
 
-    function handleDataLayerPush(item) {
-      // Always log, but highlight consent-ish payloads
-      if (isLikelyConsentEvent(item)) {
-        lastUcEventName = item.event;
-        setBadge("ucLastEvent", lastUcEventName);
-        log(`dataLayer event: ${item.event}`, item);
-      } else if (item && item.event) {
-        // Keep noise low: only log other events briefly
-        log(`dataLayer event: ${item.event}`);
-      } else {
-        log("dataLayer push (no event field)", item);
-      }
+    // Clarity
+    state.clarityLoaded = (typeof window.clarity === "function");
 
-      extractBooleanFields(item);
-    }
+    badge(document.getElementById("uetLoaded"), state.uetLoaded);
+    badge(document.getElementById("uetAdStorage"), state.uetAdStorage);
+    badge(document.getElementById("clarityLoaded"), state.clarityLoaded);
+  }
 
-    function hookDataLayer() {
-      if (!Array.isArray(window.dataLayer)) window.dataLayer = [];
-      const dl = window.dataLayer;
+  log("Validation initialized. Waiting for Usercentrics, UET and Clarity...");
+  setInterval(poll, 1000);
 
-      // Process whatever was pushed before our hook
-      for (const item of dl) {
-        if (item && typeof item === "object") extractBooleanFields(item);
-        if (isLikelyConsentEvent(item)) {
-          lastUcEventName = item.event;
-          setBadge("ucLastEvent", lastUcEventName);
-        }
-      }
-      renderServiceConsents();
+})();
+</script>
 
-      const originalPush = dl.push.bind(dl);
-      dl.push = function() {
-        for (const arg of arguments) {
-          try { handleDataLayerPush(arg); } catch (e) {
-            log("ERROR processing dataLayer push", { error: String(e), arg });
-          }
-        }
-        return originalPush.apply(null, arguments);
-      };
-
-      log("dataLayer hook installed (listening for UC consent events).");
-    }
-
-    // Optional: listen to UC window events if configured in UC Admin
-    function hookOptionalWindowEvents() {
-      for (const evtName of OPTIONAL_UC_WINDOW_EVENTS) {
-        window.addEventListener(evtName, (e) => {
-          log(`Window event received: ${evtName}`, {
-            detail: e && e.detail ? e.detail : null
-          });
-
-          // Some UC window events expose services in e.detail.services
-          if (e && e.detail) {
-            if (Array.isArray(e.detail.services)) {
-              for (const s of e.detail.services) {
-                if (s && s.name && s.consent && typeof s.consent.given === "boolean") {
-                  discoveredServiceConsents[s.name] = s.consent.given;
-                }
-              }
-              renderServiceConsents();
-            } else {
-              // Or they expose direct boolean fields (serviceName: true/false)
-              extractBooleanFields(e.detail);
-            }
-          }
-        });
-      }
-    }
-
-    // -------------------------
-    // Actions / Buttons
-    // -------------------------
-    function dumpState(reason) {
-      readDataLayerPresence();
-      const uet = readUETState();
-      const clarity = readClarityState();
-
-      log(`DUMP STATE (${reason})`, {
-        gtm_container: "GTM-5TXPGTVF",
-        last_uc_event: lastUcEventName,
-        discovered_service_consents: discoveredServiceConsents,
-        uet,
-        clarity,
-        dataLayer_length: (window.dataLayer || []).length
-      });
-    }
-
-    function wireButtons() {
-      $("btnClear").addEventListener("click", () => {
-        logEl.textContent = "";
-        log("Log cleared.");
-      });
-
-      $("btnDump").addEventListener("click", () => dumpState("Manual"));
-
-      $("btnDlUet").addEventListener("click", () => {
-        window.dataLayer.push({ event: "test_uet_event", ts: Date.now() });
-        log("ACTION: dataLayer.push({ event: 'test_uet_event' })");
-      });
-
-      $("btnDlClarity").addEventListener("click", () => {
-        window.dataLayer.push({ event: "test_clarity_event", ts: Date.now() });
-        log("ACTION: dataLayer.push({ event: 'test_clarity_event' })");
-      });
-
-      $("btnUetPing").addEventListener("click", () => {
-        window.uetq = window.uetq || [];
-        try {
-          window.uetq.push("event", "debug_ping", { ts: Date.now() });
-          log("ACTION: uetq.push('event','debug_ping', ...)");
-        } catch (e) {
-          log("ERROR: uetq push failed", { error: String(e) });
-        }
-        dumpState("UET debug_ping");
-      });
-
-      $("btnClarityTrue").addEventListener("click", () => {
-        if (typeof window.clarity === "function") {
-          window.clarity("consent", true);
-          lastClarityConsent = true;
-          log("ACTION: clarity('consent', true)");
-        } else {
-          log("ACTION FAILED: window.clarity is missing (tag may not have fired yet).");
-        }
-        readClarityState();
-      });
-
-      $("btnClarityFalse").addEventListener("click", () => {
-        if (typeof window.clarity === "function") {
-          window.clarity("consent", false);
-          lastClarityConsent = false;
-          log("ACTION: clarity('consent', false)");
-        } else {
-          log("ACTION FAILED: window.clarity is missing (tag may not have fired yet).");
-        }
-        readClarityState();
-      });
-    }
-
-    // -------------------------
-    // Boot
-    // -------------------------
-    function startPolling() {
-      readDataLayerPresence();
-      readUETState();
-      readClarityState();
-      setBadge("ucLastEvent", lastUcEventName);
-
-      log("Page initialized. Waiting for GTM/Usercentrics/UET/Clarity...");
-
-      // Poll for late-loaded tags
-      setInterval(() => {
-        readDataLayerPresence();
-        readUETState();
-        readClarityState();
-      }, 1000);
-    }
-
-    hookDataLayer();
-    hookOptionalWindowEvents();
-    wireButtons();
-    startPolling();
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
